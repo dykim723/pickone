@@ -4,10 +4,10 @@ var router = express.Router();
 var mysql      = require('mysql');
 var pool = mysql.createPool({
     connectionLimit: 3,
-    host: '127.0.0.1',
-    user: 'mixmanager',
-    database: 'audiomixer',
-    password: 'test123'
+    host: '52.78.143.80',
+    user: 'ionicClient',
+    database: 'EnsembleDB',
+    password: 'qlqjs1989'
 });
 
 
@@ -20,7 +20,7 @@ router.post('/', function (req, res, next) {
 
         json = req.body;
         console.log(json.email, json.password);
-        query = connection.query('SELECT * FROM users WHERE email=? AND password=?', [json.email, json.password] , function (err, rows) {
+        query = connection.query('SELECT * FROM UserInfo WHERE Email=? AND Password=?', [json.email, json.password] , function (err, rows) {
             if (err) console.error("err : " + err);
             console.log("rows : " + JSON.stringify(rows));
 
