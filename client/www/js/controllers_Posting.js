@@ -62,7 +62,14 @@ postApp.controller('postCtrl', function ($scope, $http) {
     $scope.sendFile = function () {
         var uploadUrl = "http://localhost:3000/fileUpload";
         var fd = new FormData();
-        fd.append('file', document.getElementById('testInput').files[0]);
+        var len = document.getElementsByName('fileInput').length;
+		
+		checkNullFile();
+		for(var i = 0; i < len; i++)
+		{
+			fd.append('file', document.getElementById('testInput').files[0]);
+		}
+		
         $http.post(uploadUrl, fd, {
             transformRequest: angular.identity,
             headers: { 'Content-Type': undefined }
