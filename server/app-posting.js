@@ -36,32 +36,28 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.post('/fileUpload', upload.single('file'), function (req, res) {
-    console.log("fileUpload in node");
-});
-
-app.post('/', function (req, res) {
-  console.log('content is :'+req.body.params.content);
-  console.log('title is :'+req.body.params.title);
+app.post('/postingUpload', upload.array('file', 5), function (req, res) {
+    console.log(req.body.title);
+	console.log(req.body.content);
+	
+	var insertData = {BoardNo: 0, Text: req.body.content, Email: 'TestMail@gmail.com'};
   
-  var insertData = {BoardNo: 0, Text: req.body.params.content, Email: 'TestMail@gmail.com'};
-  
-  connection.connect(function(err) {
+	connection.connect(function(err) {
 	if (err) {
 	  console.error('error connecting: ' + err.stack);
 	  return;
 	}
 
 	console.log('connected as id ' + connection.threadId);
-  });
-  connection.query('INSERT INTO Board SET ?', insertData, function(err, result) {
-    //if (err) throw err;
-    //console.log('The solution is: ', rows[0].solution);
-  });
-  //console.log(query.sql);
-  connection.end();
+	});
+	connection.query('INSERT INTO Board SET ?', insertData, function(err, result) {
+	//if (err) throw err;
+	//console.log('The solution is: ', rows[0].solution);
+	});
+	//console.log(query.sql);
+	connection.end();
 
-  res.json(req.body);
+	res.json(req.body);
 });
 
 app.listen(3000, function () {

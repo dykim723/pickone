@@ -38,12 +38,31 @@ postApp.controller('postCtrl', function ($scope, $http) {
     $scope.testFile;
 
     $scope.onClickPost = function () {
-        console.log("run onClickPostNG");
-        console.log($scope.postData.title);
-        console.log($scope.postData.content);
-
-        var ret = $http.post('http://localhost:3000/', { params: $scope.postData })/*.then(successCallback, errorCallback)*/;
-        console.log(ret);
+		checkNullFile();
+		
+		var uploadUrl = "http://localhost:3000/postingUpload";
+        var fd = new FormData();
+		var len = document.getElementsByName('fileInput').length;
+		
+		fd.append('title', $scope.postData.title);
+		fd.append('content', $scope.postData.content);
+		
+		for(var i = 0; i < len; i++)
+		{
+			console.log('test send');
+			fd.append('file', document.getElementsByName('fileInput')[i].files[0]);
+		}
+		
+        $http.post(uploadUrl, fd, {
+            transformRequest: angular.identity,
+            headers: { 'Content-Type': undefined }
+        })
+        .success(function (res) {
+			console.log(res);
+        })
+        .error(function (err) {
+			console.log(err);
+        });
     };
 
     $scope.clickFolder = function () {
@@ -57,26 +76,5 @@ postApp.controller('postCtrl', function ($scope, $http) {
         input.onchange = changeFileValue;
         document.getElementById('divInput').appendChild(input);
         input.click();
-    };
-
-    $scope.sendFile = function () {
-        var uploadUrl = "http://localhost:3000/fileUpload";
-        var fd = new FormData();
-        var len = document.getElementsByName('fileInput').length;
-		
-		checkNullFile();
-		for(var i = 0; i < len; i++)
-		{
-			fd.append('file', document.getElementById('testInput').files[0]);
-		}
-		
-        $http.post(uploadUrl, fd, {
-            transformRequest: angular.identity,
-            headers: { 'Content-Type': undefined }
-        })
-        .success(function () {
-        })
-        .error(function () {
-        });
     };
 });
