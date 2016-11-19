@@ -1,35 +1,23 @@
 ﻿var postApp = angular.module('starter', ['ionic']);
 var userInput = { 'title': '', 'content': '' };
 
-function changeFileValue() {
-    var length = document.getElementsByName('fileInput').length;
-    var element = document.getElementsByName('fileInput')[length - 1];
-    console.log('call onchange + ');
-    console.log(element);
-    console.log(element.value);
-
-    if (element.value !== '')
-    {
-        document.getElementById('divInput').appendChild(element);
-        console.log(document.getElementsByName('fileInput').length);
-    }
-    else
-    {
-        document.getElementById('divInput').removeChild(element);
-        //element.remove();
-    }
-}
-
 function checkNullFile() {
     var len = document.getElementsByName('fileInput').length;
-
+	var element = null;
+	
     for(var i = 0; i < len; i++)
     {
-        var element = document.getElementsByName('fileInput')[i];
-
+        element = document.getElementsByName('fileInput')[i];
         if (element.value.length == 0)
             document.getElementById('divInput').removeChild(element);
     }
+}
+
+function deleteListItem() {
+	var element = document.getElementsByName('fileInput')[this.value];
+	
+	this.parentElement.parentElement.removeChild(this.parentElement);
+	document.getElementById('divInput').removeChild(element);
 }
 
 postApp.controller('postCtrl', function ($scope, $http) {
@@ -65,16 +53,50 @@ postApp.controller('postCtrl', function ($scope, $http) {
         });
     };
 
+	$scope.changeFileValue = function () {
+		var element = this;
+		
+		if (element.value.length != 0)
+		{
+			document.getElementById('divInput').appendChild(element);
+			var length = document.getElementsByName('fileInput').length;
+			console.log(document.getElementsByName('fileInput').length);
+			
+			//check image/jpeg, image/png
+			if(element.files[0].type === 'image/jpeg' || element.files[0].type === 'image/png')
+			{
+				var listItem = document.createElement('li');
+				var img = document.createElement('img');
+				var a = document.createElement('a');
+				var imgSrc = URL.createObjectURL(element.files[0]);
+				
+				img.setAttribute('src', imgSrc);
+				img.style.width = '85vw';
+				
+				a.onclick = deleteListItem;
+				a.innerHTML = '삭제';
+				a.value = length - 1;
+				
+				listItem.setAttribute('class', 'item');
+				listItem.setAttribute('align', 'center');
+				
+				listItem.appendChild(img);
+				listItem.appendChild(a);
+				document.getElementById('ionList').appendChild(listItem);
+			}
+		}
+	}
+	
     $scope.clickFolder = function () {
         checkNullFile();
-
+		
         var input = document.createElement('input');
 
         input.setAttribute('type', 'file');
         input.setAttribute('name', 'fileInput');
-        //input.setAttribute('hidden', '');
-        input.onchange = changeFileValue;
-        document.getElementById('divInput').appendChild(input);
+		input.setAttribute('accept', '.jpg, .png, .mp3, .wav, .mp4, .ogg');
+        input.setAttribute('hidden', '');
+        input.onchange = $scope.changeFileValue;
         input.click();
     };
 });

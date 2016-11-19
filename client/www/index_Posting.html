@@ -33,21 +33,20 @@
       <button class="button button-clear button-positive" ng-click="onClickPost()"><b>등록</b></button>
     </ion-header-bar>
     <ion-content id='ionContent'>
-      <ion-list>
-        <ion-item>
+	  <ul class="list" id='ionList'>
+        <li class="item">
           <input type="text" style="width:85vw;" maxlength="50" ng-model="postData.title" placeholder="제목을 입력해주세요.">
-        </ion-item>
-        <ion-item style="height:74vh;">
+        </li>
+        <li class="item" style="height:74vh;">
           <textarea style="resize:none;width:85vw;height:74vh;" ng-model="postData.content" placeholder="내용을 입력해주세요."></textarea>
-        </ion-item>
-      </ion-list>
+        </li>
+      </ul>
     </ion-content>
     <ion-footer-bar align-title="left" class="bar bar-footer">
       <div class="buttons" ng-click="clickFolder()">
         <button class="button icon ion-folder button-light"></button>
       </div>
       <div id="divInput">
-        <img id="testImg" />
       </div>
     </ion-footer-bar>
   </body>
