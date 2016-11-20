@@ -16,8 +16,21 @@ function checkNullFile() {
 function deleteListItem() {
 	var element = document.getElementsByName('fileInput')[this.value];
 	
-	this.parentElement.parentElement.removeChild(this.parentElement);
+	if(element.files[0].type === 'image/jpeg' || element.files[0].type === 'image/png')
+	{
+		this.parentElement.parentElement.removeChild(this.parentElement);
+	}
+	else
+	{
+		this.parentElement.parentElement.parentElement.removeChild(this.parentElement.parentElement);
+	}
+	
 	document.getElementById('divInput').removeChild(element);
+	
+	if(document.getElementsByName('fileInput').length == 0)
+	{
+		document.getElementById('textArea').style.height = '69vh';
+	}
 }
 
 postApp.controller('postCtrl', function ($scope, $http) {
@@ -75,11 +88,20 @@ postApp.controller('postCtrl', function ($scope, $http) {
 				listItem.setAttribute('class', 'item');
 				listItem.setAttribute('align', 'center');
 				listItem.appendChild(img);
+				
+				a.onclick = deleteListItem;
+				a.innerHTML = '삭제';
+				a.value = length - 1;
+				listItem.appendChild(a);
 			}
 			else if(element.files[0].type === 'audio/mp3' || element.files[0].type === 'audio/wav')
 			{
 				var audioPlayer = document.createElement('audio');
 				var source = document.createElement('source');
+				var select = document.createElement('select');
+				var div = document.createElement('div');
+				var option = null;
+				var optionVal = new Array('Guitar', 'Base', 'Drum', 'Piano', 'Vocal');
 				
 				imgSrc = './img/icon-music-file.png';
 				img.setAttribute('src', imgSrc);
@@ -90,17 +112,30 @@ postApp.controller('postCtrl', function ($scope, $http) {
 				audioPlayer.setAttribute('controls', 'true');
 				audioPlayer.appendChild(source);
 				
-				listItem.setAttribute('class', 'item item-thumbnail-left');
-				listItem.appendChild(img);
-				listItem.appendChild(audioPlayer);
+				for(var i = 0; i < optionVal.length; i++)
+				{
+					option = document.createElement('option');
+					option.value = optionVal[i];
+					option.innerHTML = optionVal[i];
+					select.appendChild(option);
+				}
+				
+				a.onclick = deleteListItem;
+				a.innerHTML = '삭제';
+				a.value = length - 1;
+
+				div.setAttribute('class', 'input-label');
+				div.appendChild(img);
+				div.appendChild(audioPlayer);
+				div.appendChild(a);
+				
+				listItem.setAttribute('class', 'item item-thumbnail-left item-input item-select');				
+				listItem.appendChild(div);
+				listItem.appendChild(select);
 			}
 			
-			a.onclick = deleteListItem;
-			a.innerHTML = '삭제';
-			a.value = length - 1;
-			listItem.appendChild(a);
 			document.getElementById('ionList').appendChild(listItem);
-			document.getElementById('textArea').style.height = '50vh';
+			document.getElementById('textArea').style.height = '52vh';
 		}
 	}
 	
