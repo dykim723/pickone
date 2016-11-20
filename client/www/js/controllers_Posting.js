@@ -21,7 +21,7 @@ function deleteListItem() {
 }
 
 postApp.controller('postCtrl', function ($scope, $http) {
-    $scope.appName = "Angular ctrl";
+    $scope.appName = 'Ensemble에 게시';
     $scope.postData = userInput;
     $scope.testFile;
 
@@ -60,30 +60,47 @@ postApp.controller('postCtrl', function ($scope, $http) {
 		{
 			document.getElementById('divInput').appendChild(element);
 			var length = document.getElementsByName('fileInput').length;
-			console.log(document.getElementsByName('fileInput').length);
+			var listItem = document.createElement('li');
+			var img = document.createElement('img');
+			var a = document.createElement('a');
+			var imgSrc = null;
 			
 			//check image/jpeg, image/png
 			if(element.files[0].type === 'image/jpeg' || element.files[0].type === 'image/png')
 			{
-				var listItem = document.createElement('li');
-				var img = document.createElement('img');
-				var a = document.createElement('a');
-				var imgSrc = URL.createObjectURL(element.files[0]);
-				
+				imgSrc = URL.createObjectURL(element.files[0]);
 				img.setAttribute('src', imgSrc);
 				img.style.width = '85vw';
 				
-				a.onclick = deleteListItem;
-				a.innerHTML = '삭제';
-				a.value = length - 1;
-				
 				listItem.setAttribute('class', 'item');
 				listItem.setAttribute('align', 'center');
-				
 				listItem.appendChild(img);
-				listItem.appendChild(a);
-				document.getElementById('ionList').appendChild(listItem);
 			}
+			else if(element.files[0].type === 'audio/mp3' || element.files[0].type === 'audio/wav')
+			{
+				var audioPlayer = document.createElement('audio');
+				var source = document.createElement('source');
+				
+				imgSrc = './img/icon-music-file.png';
+				img.setAttribute('src', imgSrc);
+				
+				source.setAttribute('src', URL.createObjectURL(element.files[0]));
+				source.setAttribute('type', element.files[0].type);
+				
+				audioPlayer.setAttribute('controls', 'true');
+				audioPlayer.appendChild(source);
+				
+				listItem.setAttribute('class', 'item item-thumbnail-left');
+				listItem.appendChild(img);
+				listItem.appendChild(audioPlayer);
+			}
+			
+			a.onclick = deleteListItem;
+			a.innerHTML = '삭제';
+			a.value = length - 1;
+			listItem.appendChild(a);
+			document.getElementById('ionList').appendChild(listItem);
+			document.getElementById('textArea').style.height = '50vh';
 		}
 	}
 	
