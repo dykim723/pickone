@@ -9,10 +9,13 @@ var bodyParser = require('body-parser');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var login = require('./routes/login');
+var posting = require('./routes/posting');
+/*
 
 var upload = multer({ //multer settings
   storage: storage
 }).single('file');
+*/
 
 
 var app = express();
@@ -49,8 +52,10 @@ app.use(function(req, res, next) {
 app.use('/', index);
 app.use('/users', users);
 app.use('/login', login);
+app.use('/posting', posting);
 
 /** API path that will upload the files */
+/*
 var storage = multer.diskStorage({ //multers disk storage settings
   destination: function (req, file, cb) {
     cb(null, './uploads/')
@@ -63,7 +68,7 @@ var storage = multer.diskStorage({ //multers disk storage settings
 var upload = multer({ //multer settings
   storage: storage
 }).single('file');
-/** API path that will upload the files */
+/!** API path that will upload the files *!/
 app.post('/upload', function(req, res) {
   upload(req,res,function(err){
     if(err){
@@ -73,6 +78,7 @@ app.post('/upload', function(req, res) {
     res.json({error_code:0,err_desc:req.body});
   })
 });
+*/
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
