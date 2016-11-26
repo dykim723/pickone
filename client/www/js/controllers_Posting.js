@@ -1,36 +1,22 @@
 ﻿var postApp = angular.module('starter', ['ionic']);
 var userInput = { 'title': '', 'content': '' };
 
-function checkNullFile() {
-    var len = document.getElementsByName('fileInput').length;
-	var element = null;
-	
-    for(var i = 0; i < len; i++)
-    {
-        element = document.getElementsByName('fileInput')[i];
-        if (element.value.length == 0)
-            document.getElementById('divInput').removeChild(element);
-    }
-}
-
 function deleteListItem() {
-	var element = document.getElementsByName('fileInput')[this.value];
-	
-	if(element.files[0].type === 'image/jpeg' || element.files[0].type === 'image/png')
-	{
-		this.parentElement.parentElement.removeChild(this.parentElement);
-	}
-	else
-	{
-		this.parentElement.parentElement.parentElement.removeChild(this.parentElement.parentElement);
-	}
-	
-	document.getElementById('divInput').removeChild(element);
+	this.parentElement.parentElement.parentElement.removeChild(this.parentElement.parentElement);
 	
 	if(document.getElementsByName('fileInput').length == 0)
 	{
-		document.getElementById('textArea').style.height = '69vh';
+		document.getElementById('textArea').style.height = '70vh';
 	}
+}
+
+function isAcceptableType(type) {
+	if(type === 'image/jpeg' || type === 'image/png' || type === 'audio/mp3' 
+		|| type === 'audio/wav' || type === '')
+	{
+		return true;
+	}
+	return false;
 }
 
 postApp.controller('postCtrl', function ($scope, $http) {
@@ -39,8 +25,6 @@ postApp.controller('postCtrl', function ($scope, $http) {
     $scope.testFile;
 
     $scope.onClickPost = function () {
-		checkNullFile();
-		
 		var uploadUrl = "http://localhost:3000/postingUpload";
         var fd = new FormData();
 		var len = document.getElementsByName('fileInput').length;
@@ -50,7 +34,6 @@ postApp.controller('postCtrl', function ($scope, $http) {
 		
 		for(var i = 0; i < len; i++)
 		{
-			console.log('test send');
 			fd.append('file', document.getElementsByName('fileInput')[i].files[0]);
 		}
 		
@@ -67,16 +50,31 @@ postApp.controller('postCtrl', function ($scope, $http) {
     };
 
 	$scope.changeFileValue = function () {
-		var element = this;
+		var element = document.getElementById('fakeInputFile');
 		
-		if (element.value.length != 0)
+		if (element.value.length != 0 && isAcceptableType(element.files[0].type) == true)
 		{
-			document.getElementById('divInput').appendChild(element);
-			var length = document.getElementsByName('fileInput').length;
+			var input = document.createElement('input');
+			var length = 0;
 			var listItem = document.createElement('li');
 			var img = document.createElement('img');
 			var a = document.createElement('a');
 			var imgSrc = null;
+			var div = document.createElement('div');
+			
+			input.setAttribute('type', 'file');
+			input.setAttribute('name', 'fileInput');
+			input.setAttribute('hidden', '');
+			input.files[0] = element.files[0];
+						
+			a.onclick = deleteListItem;
+			a.innerHTML = '삭제';
+			
+			div.appendChild(input);
+			div.appendChild(img);
+			div.appendChild(a);
+			
+			length = document.getElementsByName('fileInput').length;
 			
 			//check image/jpeg, image/png
 			if(element.files[0].type === 'image/jpeg' || element.files[0].type === 'image/png')
@@ -87,19 +85,13 @@ postApp.controller('postCtrl', function ($scope, $http) {
 				
 				listItem.setAttribute('class', 'item');
 				listItem.setAttribute('align', 'center');
-				listItem.appendChild(img);
-				
-				a.onclick = deleteListItem;
-				a.innerHTML = '삭제';
-				a.value = length - 1;
-				listItem.appendChild(a);
+				listItem.appendChild(div);
 			}
-			else if(element.files[0].type === 'audio/mp3' || element.files[0].type === 'audio/wav')
+			else if(element.files[0].type === 'audio/mp3' || element.files[0].type === 'audio/wav' || element.files[0].type === '')
 			{
 				var audioPlayer = document.createElement('audio');
 				var source = document.createElement('source');
 				var select = document.createElement('select');
-				var div = document.createElement('div');
 				var option = null;
 				var optionVal = new Array('Guitar', 'Base', 'Drum', 'Piano', 'Vocal');
 				
@@ -109,7 +101,7 @@ postApp.controller('postCtrl', function ($scope, $http) {
 				source.setAttribute('src', URL.createObjectURL(element.files[0]));
 				source.setAttribute('type', element.files[0].type);
 				
-				audioPlayer.setAttribute('controls', 'true');
+				audioPlayer.setAttribute('controls', '');
 				audioPlayer.appendChild(source);
 				
 				for(var i = 0; i < optionVal.length; i++)
@@ -120,14 +112,8 @@ postApp.controller('postCtrl', function ($scope, $http) {
 					select.appendChild(option);
 				}
 				
-				a.onclick = deleteListItem;
-				a.innerHTML = '삭제';
-				a.value = length - 1;
-
 				div.setAttribute('class', 'input-label');
-				div.appendChild(img);
 				div.appendChild(audioPlayer);
-				div.appendChild(a);
 				
 				listItem.setAttribute('class', 'item item-thumbnail-left item-input item-select');				
 				listItem.appendChild(div);
@@ -135,20 +121,9 @@ postApp.controller('postCtrl', function ($scope, $http) {
 			}
 			
 			document.getElementById('ionList').appendChild(listItem);
-			document.getElementById('textArea').style.height = '52vh';
+			document.getElementById('textArea').style.height = '50vh';
+			element.value = null;
+			element.files[0] = null;
 		}
 	}
-	
-    $scope.clickFolder = function () {
-        checkNullFile();
-		
-        var input = document.createElement('input');
-
-        input.setAttribute('type', 'file');
-        input.setAttribute('name', 'fileInput');
-		input.setAttribute('accept', '.jpg, .png, .mp3, .wav, .mp4, .ogg');
-        input.setAttribute('hidden', '');
-        input.onchange = $scope.changeFileValue;
-        input.click();
-    };
 });

@@ -8,9 +8,8 @@
     <link href="lib/ionic/css/ionic.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
 
-    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
+    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above -->
     <link href="css/ionic.app.css" rel="stylesheet">
-    -->
 
     <!--For users deploying their apps to Windows 8.1 or Android Gingerbread, platformOverrided.js
     will inject platform-specific code from the /merges folder -->
@@ -38,15 +37,18 @@
           <input type="text" style="width:85vw;" maxlength="50" ng-model="postData.title" placeholder="제목을 입력해주세요.">
         </li>
         <li class="item">
-          <textarea id="textArea" style="resize:none;width:85vw;height:69vh;" ng-model="postData.content" placeholder="내용을 입력해주세요."></textarea>
+          <textarea id="textArea" style="resize:none;width:85vw;height:70vh;" ng-model="postData.content" placeholder="내용을 입력해주세요."></textarea>
         </li>
       </ul>
     </ion-content>
     <ion-footer-bar align-title="left" class="bar bar-footer">
-      <div class="buttons" ng-click="clickFolder()">
-        <button class="button icon ion-folder button-light"></button>
-      </div>
-      <div id="divInput">
+      <div class="buttons" style='position:absolute;z:0;'>
+		<button class="button" onclick='document.getElementById("fakeInputFile").click()'>
+		  <i class="icon ion-folder"></i> File
+		</button>
+	  </div>
+	  <div style='position:absolute;z:1;'>
+		<input id='fakeInputFile' style='opacity:0;' type='file' onchange='angular.element(this).scope().changeFileValue()' />
       </div>
     </ion-footer-bar>
   </body>
