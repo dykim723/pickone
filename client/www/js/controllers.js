@@ -69,18 +69,21 @@ angular.module('starter.controllers', [])
   $scope.chat = Chats.get($stateParams.chatId);
 })
 
-.controller('postCtrl', function ($scope, $http) {
+.controller('postCtrl', function ($scope, $http, $ionicPlatform, $fileFactory) {
   $scope.appName = 'Ensemble에 게시';
   $scope.postData = userInput;
   $scope.testFile;
 
   $scope.onClickPost = function () {
+    console.log('onClickPost');
+    $scope.fileName='nothing';
     checkNullFile();
 
     var uploadUrl = "http://127.0.0.1:5000/postingUpload";
     var fd = new FormData();
     var len = document.getElementsByName('fileInput').length;
 
+    console.log('length: ' + len);
     fd.append('title', $scope.postData.title);
     fd.append('content', $scope.postData.content);
 
@@ -89,7 +92,7 @@ angular.module('starter.controllers', [])
       console.log('test send');
       fd.append('file', document.getElementsByName('fileInput')[i].files[0]);
     }
-
+    /*
     $http.post(uploadUrl, fd, {
       transformRequest: angular.identity,
       headers: { 'Content-Type': undefined }
@@ -99,7 +102,7 @@ angular.module('starter.controllers', [])
       })
       .error(function (err) {
         console.log(err);
-      });
+      });*/
   };
 
   $scope.changeFileValue = function () {
@@ -176,6 +179,8 @@ angular.module('starter.controllers', [])
   }
 
   $scope.clickFolder = function () {
+    console.log('clickFolder');
+
     checkNullFile();
 
     var input = document.createElement('input');
@@ -187,6 +192,27 @@ angular.module('starter.controllers', [])
     input.onchange = $scope.changeFileValue;
     input.click();
   };
+
+  var fs = new $fileFactory();
+
+  $ionicPlatform.ready(function() {
+    fs.getEntriesAtRoot().then(function(result) {
+      $scope.files = result;
+    }, function(error) {
+      console.error(error);
+    });
+
+    $scope.getContents = function(path) {
+      fs.getEntries(path).then(function(result) {
+        $scope.files = result;
+        $scope.files.unshift({name: "[parent]"});
+        fs.getParentDirectory(path).then(function(result) {
+          result.name = "[parent]";
+          $scope.files[0] = result;
+        });
+      });
+    }
+  });
 })
 
 .controller('AccountCtrl', function($scope) {
@@ -195,6 +221,34 @@ angular.module('starter.controllers', [])
   };
 
 
+})
+
+.controller("ExampleController", function($scope, $ionicPlatform, $fileFactory) {
+
+  var fs = new $fileFactory();
+
+  $ionicPlatform.ready(function() {
+    fs.getEntriesAtRoot().then(function(result) {
+      $scope.files = result;
+    }, function(error) {
+      console.error(error);
+    });
+
+    $scope.getContents = function(path) {
+      fs.getEntries(path).then(function(result) {
+        $scope.files = result;
+        $scope.files.unshift({name: "[parent]"});
+        fs.getParentDirectory(path).then(function(result) {
+          result.name = "[parent]";
+          $scope.files[0] = result;
+        });
+      });
+    }
+  });
+
 });
+
+
+
 
 

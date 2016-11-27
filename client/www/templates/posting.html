@@ -2,7 +2,7 @@
   <ion-content id='ionContent' class="padding">
     <button class="button button-clear button-dark"><b>취소</b></button>
     <h1 class="title"><b>{{appName}}</b></h1>
-    <button class="button button-clear button-positive" ng-click="onClickPost()"><b>등록</b></button>
+    <button class="button button-clear button-positive" ng-click="onClickPost()">등록</button>
     <ul class="list" id='ionList'>
       <li class="item">
         <input type="text" style="width:85vw;" maxlength="50" ng-model="postData.title" placeholder="제목을 입력해주세요.">
@@ -11,12 +11,21 @@
         <textarea id="textArea" style="resize:none;width:85vw;height:69vh;" ng-model="postData.content" placeholder="내용을 입력해주세요."></textarea>
       </li>
     </ul>
-  </ion-content>
-  <ion-footer-bar align-title="left" class="bar bar-footer">
-    <div class="buttons" ng-click="clickFolder()">
-      <button class="button icon ion-folder button-light"></button>
+    <div class="list">
+      <div ng-repeat="file in files">
+        <a class="item item-icon-left" href="#" ng-click="getContents(file.nativeURL)">
+          <i ng-show="file.isDirectory" class="icon ion-folder"></i>
+          <i ng-show="file.isFile" class="icon ion-document"></i>
+          {{file.name}}
+        </a>
+      </div>
     </div>
+
+      <input type='file' name='files[]' ng-model='attachFiles' onchange='angular.element(this).scope().onFileSystemChange(this)' accept='image/*,video/*' multiple />
+      <button type='submit'>Submit</button>
+
     <div id="divInput">
     </div>
-  </ion-footer-bar>
+  </ion-content>
+
 </ion-view>
