@@ -1,5 +1,5 @@
 {
-  "name": "audiomixer",
+  "name": "AudioMixer",
   "version": "1.1.1",
   "description": "AudioMixer: An Ionic project",
   "dependencies": {
