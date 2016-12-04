@@ -1,5 +1,28 @@
 <ion-view view-title="Posting">
-  <ion-content>
-    <h1>Search</h1>
+  <ion-content id='ionContent'>
+    <button class="button"><b>취소</b></button>
+    <h1 class="title">{{appName}}</h1>
+    <button class="button" ng-click="onClickPost()"><b>등록</b></button>
+    <ul class="list" id='ionList'>
+      <li class="item">
+        <input type="text" style="width:85vw;" maxlength="50" ng-model="postData.title" placeholder="제목을 입력해주세요.">
+      </li>
+      <li class="item">
+        <textarea id="textArea" style="resize:none;width:85vw;height:70vh;" ng-model="postData.content" placeholder="내용을 입력해주세요."></textarea>
+      </li>
+    </ul>
   </ion-content>
+  <ion-footer-bar align-title="left" class="bar bar-footer">
+    <div class="buttons" style='position:absolute;z:0;'>
+      <button class="button" onclick='document.getElementById("fakeInputFile").click()'>
+        <i class="icon ion-folder"></i> File
+      </button>
+    </div>
+    <div style='position:absolute;z:1;'>
+      <input id='fakeInputFile' style='opacity:0;' type='file' onchange='angular.element(this).scope().changeFileValue()' />
+    </div>
+  </ion-footer-bar>
 </ion-view>
+
+
+
