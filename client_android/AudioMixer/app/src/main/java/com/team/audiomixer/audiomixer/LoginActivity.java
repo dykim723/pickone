@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
+import android.net.http.HttpResponseCache;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -30,6 +31,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -40,6 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.client.HttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import static android.Manifest.permission.READ_CONTACTS;
 import static java.net.Proxy.Type.HTTP;
@@ -300,6 +304,53 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         int IS_PRIMARY = 1;
     }
 
+    public static Boolean excutePost(String targetURL, JSONObject jsonParam)
+    {
+        URL url;
+        HttpURLConnection connection = null;
+        try {
+            Log.d("LoginActivity", "1");
+            url = new URL(targetURL);
+            Log.d("LoginActivity", "2");
+            connection = (HttpURLConnection)url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST"); // hear you are telling that it is a POST request, which can be changed into "PUT", "GET", "DELETE" etc.
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"); // here you are setting the `Content-Type` for the data you are sending which is `application/json`
+            Log.d("LoginActivity", "3");
+            connection.connect();
+            Log.d("LoginActivity", "4");
+
+            //Send request
+            DataOutputStream wr = new DataOutputStream(
+                    connection.getOutputStream ());
+            wr.writeBytes(jsonParam.toString());
+            wr.flush();
+            wr.close ();
+
+            InputStream is;
+            int response = connection.getResponseCode();
+            if (response >= 200 && response <=399){
+                //return is = connection.getInputStream();
+                return true;
+            } else {
+                //return is = connection.getErrorStream();
+                return false;
+            }
+
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return false;
+
+        } finally {
+
+            if(connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -317,22 +368,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         @Override
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
-            URL urlObj = null;
-            int status = 0;
-            HttpURLConnection urlConnection = null;
-            Log.d("LoginActivity", "doInBackgroung!!!!!!!");
+            JSONObject json = new JSONObject();
             try {
-                urlObj = new URL("http://192.168.0.2:5000/");
-                urlConnection = (HttpURLConnection) urlObj.openConnection();
-                InputStream is = urlConnection.getInputStream();
-
-                status = urlConnection.getResponseCode();
-                Log.d("LoginActivity", String.valueOf(status));
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+                json.put("TEST", "Object");
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
+            excutePost("http://192.168.0.1:5000/", json);
 
 
 
