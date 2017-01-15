@@ -90,7 +90,9 @@ public class MainActivity extends AppCompatActivity
             myIntent.putExtra("key", "Login"); //Optional parameters
             MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.nav_gallery) {
-
+            myIntent = new Intent(MainActivity.this, WritePostActivity.class);
+            //myIntent.putExtra("key", "Login"); //Optional parameters
+            MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_manage) {
