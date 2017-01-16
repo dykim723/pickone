@@ -14,11 +14,6 @@ import android.provider.MediaStore;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 public class WritePostActivity extends AppCompatActivity
 {
     private EditText mEditTextTitle;
@@ -52,53 +47,45 @@ public class WritePostActivity extends AppCompatActivity
         //super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == Activity.RESULT_OK)
         {
-            Cursor cursor = null;
             String path = null;
             String name = null;
-            int column_index = 0;
 
             switch (requestCode)
             {
                 case REQ_CODE_IMAGE:
-                    String[] projImage = { MediaStore.Images.Media.DATA };
-                    cursor = managedQuery(data.getData(), projImage, null, null, null);
-                    column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-
-                    cursor.moveToFirst();
-
-                    path = cursor.getString(column_index);
-                    name = path.substring(path.lastIndexOf("/")+1);
-                    Log.d("WritePost", "imgPath " + path);
-                    Log.d("WritePost", "imgName " + name);
+                    getMediaFileInfo(path, name, data, MediaStore.Images.Media.DATA);
                 break;
+
                 case REQ_CODE_AUDIO:
-                    String[] projAudio = { MediaStore.Audio.Media.DATA };
-                    cursor = managedQuery(data.getData(), projAudio, null, null, null);
-                    column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-
-                    cursor.moveToFirst();
-
-                    path = cursor.getString(column_index);
-                    name = path.substring(path.lastIndexOf("/")+1);
-                    Log.d("WritePost", "audio Path " + path);
-                    Log.d("WritePost", "audio Name " + name);
+                    getMediaFileInfo(path, name, data, MediaStore.Audio.Media.DATA);
                     break;
+
                 case REQ_CODE_VIDEO:
-                    String[] projVideo = { MediaStore.Audio.Media.DATA };
-                    cursor = managedQuery(data.getData(), projVideo, null, null, null);
-                    column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-
-                    cursor.moveToFirst();
-
-                    path = cursor.getString(column_index);
-                    name = path.substring(path.lastIndexOf("/")+1);
-                    Log.d("WritePost", "video Path " + path);
-                    Log.d("WritePost", "video Name " + name);
+                    getMediaFileInfo(path, name, data, MediaStore.Video.Media.DATA);
                     break;
+
                 default:
                     break;
             }
+
+            Log.d("WritePost", "Path : " + path);
+            Log.d("WritePost", "Name : " + name);
         }
+    }
+
+    public void getMediaFileInfo(String path, String name, Intent data, String mediaStore)
+    {
+        Cursor cursor = null;
+        String[] proj = {mediaStore};
+        int column_index = 0;
+
+        cursor = managedQuery(data.getData(), proj, null, null, null);
+        column_index = cursor.getColumnIndexOrThrow(proj[0]);
+        cursor.moveToFirst();
+        path = cursor.getString(column_index);
+        name = path.substring(path.lastIndexOf("/")+1);
+        //Log.d("WritePost", "Path : " + path);
+        //Log.d("WritePost", "Name : " + name);
     }
 
     Button.OnClickListener mBtnAddMediaOnClickListener = new View.OnClickListener() {
@@ -133,6 +120,8 @@ public class WritePostActivity extends AppCompatActivity
                     JSONObject json = new JSONObject();
                     try {
                         json.put("TEST", "Object");
+                        json.put("Title", mEditTextTitle.getText().toString());
+                        json.put("Content", mEditTextContent.getText().toString());
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

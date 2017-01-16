@@ -59,6 +59,13 @@ app.post('/postingUpload', upload.array('file', 5), function (req, res) {
 	res.json(req.body);
 });
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!');
+app.post('/', function (req, res) {
+    console.log('test log');
+    console.log('req.body.TEST ' + req.body.TEST);
+    console.log('title ' + req.body.Title);
+	console.log('content ' + req.body.Content);
+});
+
+app.listen(5000, function () {
+  console.log('Example app listening on port 5000!');
 });

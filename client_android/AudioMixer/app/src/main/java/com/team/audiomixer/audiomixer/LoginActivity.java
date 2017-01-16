@@ -315,7 +315,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             connection = (HttpURLConnection)url.openConnection();
             connection.setDoOutput(true);
             connection.setRequestMethod("POST"); // hear you are telling that it is a POST request, which can be changed into "PUT", "GET", "DELETE" etc.
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8"); // here you are setting the `Content-Type` for the data you are sending which is `application/json`
+            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8"); // here you are setting the `Content-Type` for the data you are sending which is `application/json`
             Log.d("LoginActivity", "3");
             connection.connect();
             Log.d("LoginActivity", "4");
