@@ -31,9 +31,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -309,16 +311,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         URL url;
         HttpURLConnection connection = null;
         try {
-            Log.d("LoginActivity", "1");
             url = new URL(targetURL);
-            Log.d("LoginActivity", "2");
+
             connection = (HttpURLConnection)url.openConnection();
             connection.setDoOutput(true);
             connection.setRequestMethod("POST"); // hear you are telling that it is a POST request, which can be changed into "PUT", "GET", "DELETE" etc.
             connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8"); // here you are setting the `Content-Type` for the data you are sending which is `application/json`
-            Log.d("LoginActivity", "3");
             connection.connect();
-            Log.d("LoginActivity", "4");
+
 
             //Send request
             DataOutputStream wr = new DataOutputStream(
@@ -351,6 +351,63 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
     }
 
+
+    public static String excuteGet(String targetURL) throws IOException {
+        URL url = null;
+        BufferedReader reader = null;
+        StringBuilder stringBuilder;
+
+        try
+        {
+            // create the HttpURLConnection
+            url = new URL(targetURL);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            // just want to do an HTTP GET here
+            connection.setRequestMethod("GET");
+
+            // uncomment this if you want to write output to this url
+            //connection.setDoOutput(true);
+
+            // give it 15 seconds to respond
+            connection.setReadTimeout(15*1000);
+            connection.connect();
+
+            // read the output from the server
+            reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            stringBuilder = new StringBuilder();
+
+            String line = null;
+            while ((line = reader.readLine()) != null)
+            {
+                stringBuilder.append(line + "\n");
+            }
+            return stringBuilder.toString();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            throw e;
+        }
+        finally
+        {
+            // close the reader; this can throw an exception too, so
+            // wrap it in another try/catch block.
+            if (reader != null)
+            {
+                try
+                {
+                    reader.close();
+                }
+                catch (IOException ioe)
+                {
+                    ioe.printStackTrace();
+                }
+            }
+        }
+
+    }
+
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -374,7 +431,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            excutePost("http://192.168.0.1:5000/", json);
+            excutePost("http://localhost:5000/", json);
 
 
 

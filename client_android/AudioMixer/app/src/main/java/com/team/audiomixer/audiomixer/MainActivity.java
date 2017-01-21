@@ -93,8 +93,9 @@ public class MainActivity extends AppCompatActivity
             myIntent = new Intent(MainActivity.this, WritePostActivity.class);
             //myIntent.putExtra("key", "Login"); //Optional parameters
             MainActivity.this.startActivity(myIntent);
-        } else if (id == R.id.nav_slideshow) {
-
+        } else if (id == R.id.content_mixing) {
+            myIntent = new Intent(MainActivity.this, MixingActivity.class);
+            MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
