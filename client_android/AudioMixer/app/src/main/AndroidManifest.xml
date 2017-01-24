@@ -32,7 +32,8 @@
         <activity
             android:name=".MixingActivity"
             android:label="@string/title_activity_mixing"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".StreamingActivity"></activity>
     </application>
 
 </manifest>

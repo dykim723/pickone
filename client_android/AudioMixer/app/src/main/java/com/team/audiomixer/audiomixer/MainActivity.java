@@ -96,8 +96,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.content_mixing) {
             myIntent = new Intent(MainActivity.this, MixingActivity.class);
             MainActivity.this.startActivity(myIntent);
-        } else if (id == R.id.nav_manage) {
-
+        } else if (id == R.id.music_player) {
+            myIntent = new Intent(MainActivity.this, StreamingActivity.class);
+            MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {

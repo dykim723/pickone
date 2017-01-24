@@ -11,6 +11,8 @@ var users = require('./routes/users');
 var login = require('./routes/login');
 var posting = require('./routes/posting');
 var mix = require('./routes/mix');
+var fs = require('fs');
+var http = require('http');
 /*
  var upload = multer({ //multer settings
  storage: storage
@@ -56,12 +58,20 @@ app.use('/postingUpload', posting);
 app.use('/mix', mix);
 app.use('/mix/', mix);
 
+app.get('/test', function(req, res){
+  fs.readFile('public/combined.mp3', function(error, data){
+    res.writeHead(200, { 'Content-Type': 'audio/mp3'});
+    res.end(data);
+  });
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
+
 
 // error handler
 
