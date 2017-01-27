@@ -1,6 +1,7 @@
 package com.team.audiomixer.audiomixer;
 
 import android.app.Activity;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,8 +12,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.MediaStore;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
 
 public class WritePostActivity extends AppCompatActivity
 {
@@ -21,6 +28,11 @@ public class WritePostActivity extends AppCompatActivity
     private Button mButtonWrite;
     private Button mButtonAddImage;
     private Button mButtonAddMedia;
+    private String mFilePath;
+    private ArrayList<String> mListStringKey;
+    private ArrayList<String> mListStringVal;
+    private ArrayList<String> mListFileKey;
+    private ArrayList<String> mListFileVal;
 
     final int REQ_CODE_IMAGE = 100;
     final int REQ_CODE_AUDIO = 200;
@@ -36,10 +48,17 @@ public class WritePostActivity extends AppCompatActivity
         mButtonWrite = (Button) findViewById(R.id.buttonWrite);
         mButtonAddImage = (Button) findViewById(R.id.buttonAddImage);
         mButtonAddMedia = (Button) findViewById(R.id.buttonAddMedia);
+        mListFileKey = new ArrayList<String>();
+        mListFileVal = new ArrayList<String>();
+        mListStringKey = new ArrayList<String>();
+        mListStringVal = new ArrayList<String>();
+        mFilePath = "";
 
         mButtonWrite.setOnClickListener(mBtnWriteOnClickListener);
         mButtonAddImage.setOnClickListener(mBtnAddImageOnClickListener);
         mButtonAddMedia.setOnClickListener(mBtnAddMediaOnClickListener);
+        String [] permissionStr = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        ActivityCompat.requestPermissions(this, permissionStr, 1);
     }
 
     @Override
@@ -48,44 +67,43 @@ public class WritePostActivity extends AppCompatActivity
         if(resultCode == Activity.RESULT_OK)
         {
             String path = null;
-            String name = null;
 
             switch (requestCode)
             {
                 case REQ_CODE_IMAGE:
-                    getMediaFileInfo(path, name, data, MediaStore.Images.Media.DATA);
-                break;
+                    path = getMediaFileInfo(data, MediaStore.Images.Media.DATA);
+                    break;
 
                 case REQ_CODE_AUDIO:
-                    getMediaFileInfo(path, name, data, MediaStore.Audio.Media.DATA);
+                    path = getMediaFileInfo(data, MediaStore.Audio.Media.DATA);
                     break;
 
                 case REQ_CODE_VIDEO:
-                    getMediaFileInfo(path, name, data, MediaStore.Video.Media.DATA);
+                    path = getMediaFileInfo(data, MediaStore.Video.Media.DATA);
                     break;
 
                 default:
                     break;
             }
 
+            mFilePath = path;
             Log.d("WritePost", "Path : " + path);
-            Log.d("WritePost", "Name : " + name);
         }
     }
 
-    public void getMediaFileInfo(String path, String name, Intent data, String mediaStore)
+    public String getMediaFileInfo(Intent data, String mediaStore)
     {
         Cursor cursor = null;
         String[] proj = {mediaStore};
+        String path = null;
         int column_index = 0;
 
         cursor = managedQuery(data.getData(), proj, null, null, null);
         column_index = cursor.getColumnIndexOrThrow(proj[0]);
         cursor.moveToFirst();
         path = cursor.getString(column_index);
-        name = path.substring(path.lastIndexOf("/")+1);
-        //Log.d("WritePost", "Path : " + path);
-        //Log.d("WritePost", "Name : " + name);
+
+        return path;
     }
 
     Button.OnClickListener mBtnAddMediaOnClickListener = new View.OnClickListener() {
@@ -117,18 +135,91 @@ public class WritePostActivity extends AppCompatActivity
 
             new Thread() {
                 public void run() {
-                    JSONObject json = new JSONObject();
-                    try {
-                        json.put("TEST", "Object");
-                        json.put("Title", mEditTextTitle.getText().toString());
-                        json.put("Content", mEditTextContent.getText().toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    mListFileKey.clear();
+                    mListFileVal.clear();
+                    mListStringKey.clear();
+                    mListStringVal.clear();
+
+                    mListStringKey.add("Title");
+                    mListStringVal.add(mEditTextTitle.getText().toString());
+                    mListStringKey.add("Content");
+                    mListStringVal.add(mEditTextContent.getText().toString());
+
+                    if(mFilePath.length() > 0)
+                    {
+                        mListFileKey.add(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
+                        mListFileVal.add(mFilePath);
                     }
 
-                    LoginActivity.excutePost("http://192.168.11.105:5000/", json);
+                    WritePostActivity.excuteFilePost("http://192.168.11.110:5000/", mListStringKey, mListStringVal, mListFileKey, mListFileVal);
                 }
             }.start();
         }
     };
+
+    public static void excuteFilePost(String serverURL, ArrayList<String> listStringKey, ArrayList<String> listStringVal, ArrayList<String> listFileKey, ArrayList <String> listFileVal)
+    {
+        try {
+            URL url = new URL(serverURL);
+            String boundary = "s00h00i00n";
+            URLConnection con = url.openConnection();
+            con.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+            con.setDoOutput(true);
+
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+
+            // Post Sting
+            // name: 서버 변수명
+            for(int i = 0; i < listStringKey.size(); i++)
+            {
+                wr.writeBytes("\r\n--" + boundary + "\r\n");
+                wr.writeBytes("Content-Disposition: form-data; name=\"" + listStringKey.get(i) + "\"\r\n\r\n" + listStringVal.get(i));
+            }
+
+            // Post File
+            // filename: 서버에 저장할 파일명
+            for(int i = 0; i < listFileKey.size(); i++)
+            {
+                wr.writeBytes("\r\n--" + boundary + "\r\n");
+                wr.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"" + listFileKey.get(i) + "\"\r\n");
+                wr.writeBytes("Content-Type: application/octet-stream\r\n\r\n");
+
+                FileInputStream fileInputStream = new FileInputStream(listFileVal.get(i));
+                int bytesAvailable = fileInputStream.available();
+                int maxBufferSize = 1024;
+                int bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                byte[] buffer = new byte[bufferSize];
+
+                int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                while (bytesRead > 0) {
+                    // Upload file part(s)
+                    DataOutputStream dataWrite = new DataOutputStream(con.getOutputStream());
+                    dataWrite.write(buffer, 0, bufferSize);
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                }
+                fileInputStream.close();
+            }
+
+            // Server로 전송
+            // 마지막 boundary는 '--' 앞, 뒤로 추가
+            wr.writeBytes("\r\n--" + boundary + "--\r\n");
+            wr.flush();
+            wr.close();
+
+            // server return
+            BufferedReader rd = null;
+            rd = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+            String line = null;
+            while ((line = rd.readLine()) != null) {
+                Log.d("Write Post", line);
+            }
+            rd.close();
+        }
+        catch (IOException e)
+        {
+            Log.d("WritePost", "Err msg: " + e.getMessage());
+        }
+    }
 }
