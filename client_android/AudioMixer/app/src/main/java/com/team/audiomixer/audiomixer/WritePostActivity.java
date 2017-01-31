@@ -1,16 +1,24 @@
 package com.team.audiomixer.audiomixer;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.content.Intent;
 import android.database.Cursor;
 import android.provider.MediaStore;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -21,7 +29,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
-public class WritePostActivity extends AppCompatActivity
+public class WritePostActivity extends AppCompatActivity implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
 {
     private EditText mEditTextTitle;
     private EditText mEditTextContent;
@@ -33,13 +41,17 @@ public class WritePostActivity extends AppCompatActivity
     private ArrayList<String> mListStringVal;
     private ArrayList<String> mListFileKey;
     private ArrayList<String> mListFileVal;
+    private ListView mMediaListView;
+    private MediaListViewAdapter mMediaListVeiwAdapter;
+    private MediaListViewItem mMediaListViewItem;
 
     final int REQ_CODE_IMAGE = 100;
     final int REQ_CODE_AUDIO = 200;
     final int REQ_CODE_VIDEO = 300;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_write_post);
 
@@ -53,16 +65,45 @@ public class WritePostActivity extends AppCompatActivity
         mListStringKey = new ArrayList<String>();
         mListStringVal = new ArrayList<String>();
         mFilePath = "";
+        mMediaListView = (ListView) findViewById(R.id.MediaListView);
+        mMediaListVeiwAdapter = new MediaListViewAdapter();
 
         mButtonWrite.setOnClickListener(mBtnWriteOnClickListener);
         mButtonAddImage.setOnClickListener(mBtnAddImageOnClickListener);
         mButtonAddMedia.setOnClickListener(mBtnAddMediaOnClickListener);
+
+        mMediaListVeiwAdapter.setDeleteBtnListener(this);
+        mMediaListView.setAdapter(mMediaListVeiwAdapter);
+
+
         String [] permissionStr = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
         ActivityCompat.requestPermissions(this, permissionStr, 1);
     }
 
+    public void addMediaItem()
+    {
+        if(mFilePath.length() > 0)
+        {
+            mListFileKey.add(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
+            mListFileVal.add(mFilePath);
+
+            mMediaListVeiwAdapter.addItem(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
+            mMediaListVeiwAdapter.notifyDataSetChanged();
+        }
+
+        Log.d("WritePost", "mEditTextContent.getHeight() " + mEditTextContent.getHeight());
+    }
+
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onClickListenerMediaListViewDeleteBtn(int position) {
+        Log.d("WritePost", "delete Button listener in activity");
+        mListFileKey.remove(position);
+        mListFileVal.remove(position);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
         //super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == Activity.RESULT_OK)
         {
@@ -87,6 +128,7 @@ public class WritePostActivity extends AppCompatActivity
             }
 
             mFilePath = path;
+            addMediaItem();
             Log.d("WritePost", "Path : " + path);
         }
     }
@@ -106,8 +148,10 @@ public class WritePostActivity extends AppCompatActivity
         return path;
     }
 
-    Button.OnClickListener mBtnAddMediaOnClickListener = new View.OnClickListener() {
-        public void onClick(View v) {
+    Button.OnClickListener mBtnAddMediaOnClickListener = new View.OnClickListener()
+    {
+        public void onClick(View v)
+        {
             Log.d("WritePost", "Add media clicked");
 
             Intent intent = new Intent(Intent.ACTION_PICK);
@@ -117,8 +161,10 @@ public class WritePostActivity extends AppCompatActivity
         }
     };
 
-    Button.OnClickListener mBtnAddImageOnClickListener = new View.OnClickListener() {
-        public void onClick(View v) {
+    Button.OnClickListener mBtnAddImageOnClickListener = new View.OnClickListener()
+    {
+        public void onClick(View v)
+        {
             Log.d("WritePost", "Add image clicked");
 
             Intent intent = new Intent(Intent.ACTION_PICK);
@@ -128,13 +174,17 @@ public class WritePostActivity extends AppCompatActivity
         }
     };
 
-    Button.OnClickListener mBtnWriteOnClickListener = new View.OnClickListener() {
-        public void onClick(View v) {
+    Button.OnClickListener mBtnWriteOnClickListener = new View.OnClickListener()
+    {
+        public void onClick(View v)
+        {
             Log.d("WritePost", mEditTextTitle.getText().toString());
             Log.d("WritePost", mEditTextContent.getText().toString());
 
-            new Thread() {
-                public void run() {
+            new Thread()
+            {
+                public void run()
+                {
                     mListFileKey.clear();
                     mListFileVal.clear();
                     mListStringKey.clear();
@@ -144,12 +194,8 @@ public class WritePostActivity extends AppCompatActivity
                     mListStringVal.add(mEditTextTitle.getText().toString());
                     mListStringKey.add("Content");
                     mListStringVal.add(mEditTextContent.getText().toString());
-
-                    if(mFilePath.length() > 0)
-                    {
-                        mListFileKey.add(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
-                        mListFileVal.add(mFilePath);
-                    }
+                    mListStringKey.add("Email");
+                    mListStringVal.add("TestEmail@gmail.com");
 
                     WritePostActivity.excuteFilePost("http://192.168.11.110:5000/", mListStringKey, mListStringVal, mListFileKey, mListFileVal);
                 }
@@ -191,7 +237,8 @@ public class WritePostActivity extends AppCompatActivity
                 byte[] buffer = new byte[bufferSize];
 
                 int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-                while (bytesRead > 0) {
+                while (bytesRead > 0)
+                {
                     // Upload file part(s)
                     DataOutputStream dataWrite = new DataOutputStream(con.getOutputStream());
                     dataWrite.write(buffer, 0, bufferSize);
@@ -212,7 +259,8 @@ public class WritePostActivity extends AppCompatActivity
             BufferedReader rd = null;
             rd = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
             String line = null;
-            while ((line = rd.readLine()) != null) {
+            while ((line = rd.readLine()) != null)
+            {
                 Log.d("Write Post", line);
             }
             rd.close();

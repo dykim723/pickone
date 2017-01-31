@@ -5,6 +5,10 @@ var multer = require('multer')
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        console.log('test log destination');
+        console.log('req.body.TEST ' + req.body.TEST);
+        console.log('title ' + req.body.Title);
+        console.log('content ' + req.body.Content);
         cb(null, './upload/')
     },
     filename: function (req, file, cb) {
@@ -59,11 +63,12 @@ app.post('/postingUpload', upload.array('file', 5), function (req, res) {
 	res.json(req.body);
 });
 
-app.post('/', function (req, res) {
+app.post('/', upload.array('file', 5), function (req, res) {
     console.log('test log');
     console.log('req.body.TEST ' + req.body.TEST);
     console.log('title ' + req.body.Title);
 	console.log('content ' + req.body.Content);
+    
 });
 
 app.listen(5000, function () {

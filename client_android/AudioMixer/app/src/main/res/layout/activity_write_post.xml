@@ -2,8 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_write_post"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -14,9 +14,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textShortMessage"
-        android:text="제목을 입력하세요."
+        android:hint="제목을 입력하세요."
         android:ems="10"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:id="@+id/editTextTitle"
@@ -25,18 +24,23 @@
         android:layout_alignParentEnd="true" />
 
     <EditText
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="내용을 입력하세요."
+        android:hint="내용을 입력하세요."
         android:ems="10"
-        android:layout_below="@+id/editTextTitle"
         android:id="@+id/editTextContent"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
+        android:inputType="textMultiLine"
+        android:layout_below="@+id/editTextTitle" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/MediaListView"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:inputType="textMultiLine"
-        android:layout_above="@+id/buttonWrite" />
+        android:layout_above="@+id/buttonWrite"
+        android:layout_below="@+id/editTextContent">
+    </ListView>
 
     <Button
         android:text="등록"
@@ -45,8 +49,7 @@
         android:id="@+id/buttonWrite"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:elevation="0dp" />
+        android:layout_alignParentEnd="true" />
 
     <Button
         android:text="사진추가"
@@ -61,7 +64,7 @@
         android:text="음악/영상추가"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/editTextContent"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/buttonAddMedia" />
+        android:id="@+id/buttonAddMedia"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>
