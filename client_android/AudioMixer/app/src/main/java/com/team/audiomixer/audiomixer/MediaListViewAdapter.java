@@ -15,19 +15,29 @@ public class MediaListViewAdapter  extends BaseAdapter {
     // Adapter에 추가된 데이터를 저장하기 위한 ArrayList
     private ArrayList<MediaListViewItem> mMediaListViewItems = new ArrayList<MediaListViewItem>() ;
     private MediaListViewDeleteBtnClickListener deleteBtnListener;
+    private MediaListViewSelectBtnClickListener selectBtnListener;
+
+    public interface MediaListViewDeleteBtnClickListener {
+        void onClickListenerMediaListViewDeleteBtn(int position);
+    }
+
+    public interface MediaListViewSelectBtnClickListener {
+        void onClickListenerMediaListViewSelectBtn(int position);
+    }
 
     public void setDeleteBtnListener(MediaListViewDeleteBtnClickListener listener)
     {
         deleteBtnListener = listener;
     }
 
+    public void setSelectBtnListener(MediaListViewSelectBtnClickListener listener)
+    {
+        selectBtnListener = listener;
+    }
+
     // MediaListViewAdapter 생성자
     public MediaListViewAdapter() {
 
-    }
-
-    public interface MediaListViewDeleteBtnClickListener {
-        void onClickListenerMediaListViewDeleteBtn(int position);
     }
 
     // Adapter에 사용되는 데이터의 개수를 리턴. : 필수 구현
@@ -51,6 +61,7 @@ public class MediaListViewAdapter  extends BaseAdapter {
         // 화면에 표시될 View(Layout이 inflate된)으로부터 위젯에 대한 참조 획득
         TextView titleTextView = (TextView) convertView.findViewById(R.id.mediaListViewTitle) ;
         Button deleteButton = (Button) convertView.findViewById(R.id.mediaListViewDeleteBtn);
+        Button selectButton = (Button) convertView.findViewById(R.id.mediaListViewSelectBtn);
 
         // Data Set(mMediaListViewItems)에서 position에 위치한 데이터 참조 획득
         MediaListViewItem listViewItem = mMediaListViewItems.get(position);
@@ -64,8 +75,16 @@ public class MediaListViewAdapter  extends BaseAdapter {
             }
         });
 
+        selectButton.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                Log.d("WritePost", "select Button listener in adapter");
+                selectBtnListener.onClickListenerMediaListViewSelectBtn(pos);
+            }
+        });
+
         // 아이템 내 각 위젯에 데이터 반영
         titleTextView.setText(listViewItem.getTitle());
+        mMediaListViewItems.get(pos).setSelectBtn(selectButton);
 
         return convertView;
     }
@@ -87,7 +106,10 @@ public class MediaListViewAdapter  extends BaseAdapter {
         MediaListViewItem item = new MediaListViewItem();
 
         item.setTitle(title);
-
         mMediaListViewItems.add(item);
+    }
+
+    public void setSelectBtnText(int position, String text) {
+        mMediaListViewItems.get(position).setSelectBtnText(text);
     }
 }

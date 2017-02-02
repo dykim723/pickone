@@ -1,24 +1,19 @@
 package com.team.audiomixer.audiomixer;
 
 import android.app.Activity;
-import android.graphics.Color;
+import android.content.DialogInterface;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.content.Intent;
 import android.database.Cursor;
 import android.provider.MediaStore;
-import android.widget.GridLayout;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -29,7 +24,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
-public class WritePostActivity extends AppCompatActivity implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
+public class WritePostActivity extends AppCompatActivity
+implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener,
+MediaListViewAdapter.MediaListViewSelectBtnClickListener
 {
     private EditText mEditTextTitle;
     private EditText mEditTextContent;
@@ -41,6 +38,7 @@ public class WritePostActivity extends AppCompatActivity implements MediaListVie
     private ArrayList<String> mListStringVal;
     private ArrayList<String> mListFileKey;
     private ArrayList<String> mListFileVal;
+    private ArrayList<Integer> mListInstrumentKey;
     private ListView mMediaListView;
     private MediaListViewAdapter mMediaListVeiwAdapter;
     private MediaListViewItem mMediaListViewItem;
@@ -64,6 +62,7 @@ public class WritePostActivity extends AppCompatActivity implements MediaListVie
         mListFileVal = new ArrayList<String>();
         mListStringKey = new ArrayList<String>();
         mListStringVal = new ArrayList<String>();
+        mListInstrumentKey = new ArrayList<Integer>();
         mFilePath = "";
         mMediaListView = (ListView) findViewById(R.id.MediaListView);
         mMediaListVeiwAdapter = new MediaListViewAdapter();
@@ -73,8 +72,8 @@ public class WritePostActivity extends AppCompatActivity implements MediaListVie
         mButtonAddMedia.setOnClickListener(mBtnAddMediaOnClickListener);
 
         mMediaListVeiwAdapter.setDeleteBtnListener(this);
+        mMediaListVeiwAdapter.setSelectBtnListener(this);
         mMediaListView.setAdapter(mMediaListVeiwAdapter);
-
 
         String [] permissionStr = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
         ActivityCompat.requestPermissions(this, permissionStr, 1);
@@ -86,9 +85,9 @@ public class WritePostActivity extends AppCompatActivity implements MediaListVie
         {
             mListFileKey.add(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
             mListFileVal.add(mFilePath);
-
             mMediaListVeiwAdapter.addItem(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
             mMediaListVeiwAdapter.notifyDataSetChanged();
+            mListInstrumentKey.add(-1);
         }
 
         Log.d("WritePost", "mEditTextContent.getHeight() " + mEditTextContent.getHeight());
@@ -99,6 +98,30 @@ public class WritePostActivity extends AppCompatActivity implements MediaListVie
         Log.d("WritePost", "delete Button listener in activity");
         mListFileKey.remove(position);
         mListFileVal.remove(position);
+    }
+
+    @Override
+    public void onClickListenerMediaListViewSelectBtn(int position) {
+        final String[] items = {"기타", "드럼", "피아노", "보컬"};
+        final int pos = position;
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+        // 제목셋팅
+        alertDialogBuilder.setTitle("악기 선택");
+        alertDialogBuilder.setSingleChoiceItems(items, -1,
+            new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog,int id) {
+                    Log.d("WritePost", items[id] + " 선택");
+                    mListInstrumentKey.set(pos, id);
+                    mMediaListVeiwAdapter.setSelectBtnText(pos, items[id]);
+                    dialog.dismiss();
+                }
+            }
+        );
+
+        // 다이얼로그 생성, 보여주기
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     @Override
