@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -25,8 +26,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 
 public class WritePostActivity extends AppCompatActivity
-implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener,
-MediaListViewAdapter.MediaListViewSelectBtnClickListener
+implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
+         , MediaListViewAdapter.MediaListViewSelectBtnClickListener
 {
     private EditText mEditTextTitle;
     private EditText mEditTextContent;
@@ -41,7 +42,6 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
     private ArrayList<Integer> mListInstrumentKey;
     private ListView mMediaListView;
     private MediaListViewAdapter mMediaListVeiwAdapter;
-    private MediaListViewItem mMediaListViewItem;
 
     final int REQ_CODE_IMAGE = 100;
     final int REQ_CODE_AUDIO = 200;
@@ -89,8 +89,6 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
             mMediaListVeiwAdapter.notifyDataSetChanged();
             mListInstrumentKey.add(-1);
         }
-
-        Log.d("WritePost", "mEditTextContent.getHeight() " + mEditTextContent.getHeight());
     }
 
     @Override
@@ -102,7 +100,7 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
 
     @Override
     public void onClickListenerMediaListViewSelectBtn(int position) {
-        final String[] items = {"기타", "드럼", "피아노", "보컬"};
+        final String[] items = {"기타", "드럼", "피아노", "보컬", "MIX", "사진/비디오"};
         final int pos = position;
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
 
@@ -204,12 +202,19 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
             Log.d("WritePost", mEditTextTitle.getText().toString());
             Log.d("WritePost", mEditTextContent.getText().toString());
 
+            for(int i = 0; i < mListInstrumentKey.size(); i++)
+            {
+                if(mListInstrumentKey.get(i) == -1)
+                {
+                    Toast.makeText(getApplicationContext(), "악기를 선택하세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
             new Thread()
             {
                 public void run()
                 {
-                    //mListFileKey.clear();
-                    //mListFileVal.clear();
                     mListStringKey.clear();
                     mListStringVal.clear();
 
@@ -220,13 +225,13 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
                     mListStringKey.add("Email");
                     mListStringVal.add("TestEmail@gmail.com");
 
-                    WritePostActivity.excuteFilePost("http://192.168.11.105:5000/", mListStringKey, mListStringVal, mListFileKey, mListFileVal);
+                    excuteFilePost("http://192.168.11.105:5000/", mListStringKey, mListStringVal, mListInstrumentKey, mListFileKey, mListFileVal);
                 }
             }.start();
         }
     };
 
-    public static void excuteFilePost(String serverURL, ArrayList<String> listStringKey, ArrayList<String> listStringVal, ArrayList<String> listFileKey, ArrayList <String> listFileVal)
+    public void excuteFilePost(String serverURL, ArrayList<String> listStringKey, ArrayList<String> listStringVal, ArrayList<Integer> listFileType, ArrayList<String> listFileKey, ArrayList <String> listFileVal)
     {
         try {
             URL url = new URL(serverURL);
@@ -236,7 +241,7 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
             con.setDoOutput(true);
 
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-
+            Log.d("WritePost", "excuteFilePost");
             // Post Sting
             // name: 서버 변수명
             for(int i = 0; i < listStringKey.size(); i++)
@@ -289,10 +294,11 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
 
             while ((line = rd.readLine()) != null)
             {
-                Log.d("Write Post", line);
+                Log.d("WritePost", "server response: " + line);
             }
 
             rd.close();
+            Log.d("WritePost", "end post");
         }
         catch (IOException e)
         {
