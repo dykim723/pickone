@@ -208,8 +208,8 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
             {
                 public void run()
                 {
-                    mListFileKey.clear();
-                    mListFileVal.clear();
+                    //mListFileKey.clear();
+                    //mListFileVal.clear();
                     mListStringKey.clear();
                     mListStringVal.clear();
 
@@ -220,7 +220,7 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
                     mListStringKey.add("Email");
                     mListStringVal.add("TestEmail@gmail.com");
 
-                    WritePostActivity.excuteFilePost("http://192.168.11.110:5000/", mListStringKey, mListStringVal, mListFileKey, mListFileVal);
+                    WritePostActivity.excuteFilePost("http://192.168.11.105:5000/", mListStringKey, mListStringVal, mListFileKey, mListFileVal);
                 }
             }.start();
         }
@@ -242,7 +242,8 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
             for(int i = 0; i < listStringKey.size(); i++)
             {
                 wr.writeBytes("\r\n--" + boundary + "\r\n");
-                wr.writeBytes("Content-Disposition: form-data; name=\"" + listStringKey.get(i) + "\"\r\n\r\n" + listStringVal.get(i));
+                wr.writeBytes("Content-Disposition: form-data; name=\"" + listStringKey.get(i) + "\"\r\n\r\n"/* + listStringVal.get(i)*/);
+                wr.writeUTF(listStringVal.get(i));
             }
 
             // Post File
@@ -250,7 +251,9 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
             for(int i = 0; i < listFileKey.size(); i++)
             {
                 wr.writeBytes("\r\n--" + boundary + "\r\n");
-                wr.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"" + listFileKey.get(i) + "\"\r\n");
+                wr.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"" /*+ listFileKey.get(i) + "\"\r\n"*/);
+                wr.writeUTF(listFileKey.get(i));
+                wr.writeBytes("\"\r\n");
                 wr.writeBytes("Content-Type: application/octet-stream\r\n\r\n");
 
                 FileInputStream fileInputStream = new FileInputStream(listFileVal.get(i));
@@ -258,8 +261,8 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
                 int maxBufferSize = 1024;
                 int bufferSize = Math.min(bytesAvailable, maxBufferSize);
                 byte[] buffer = new byte[bufferSize];
-
                 int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
                 while (bytesRead > 0)
                 {
                     // Upload file part(s)
@@ -269,6 +272,7 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
                     bufferSize = Math.min(bytesAvailable, maxBufferSize);
                     bytesRead = fileInputStream.read(buffer, 0, bufferSize);
                 }
+
                 fileInputStream.close();
             }
 
@@ -282,10 +286,12 @@ MediaListViewAdapter.MediaListViewSelectBtnClickListener
             BufferedReader rd = null;
             rd = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
             String line = null;
+
             while ((line = rd.readLine()) != null)
             {
                 Log.d("Write Post", line);
             }
+
             rd.close();
         }
         catch (IOException e)

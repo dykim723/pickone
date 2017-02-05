@@ -2,17 +2,37 @@ var app = require('express')();
 var bodyParser = require('body-parser');
 var mysql = require('mysql');
 var multer = require('multer')
+var fs = require('fs');
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        console.log('test log destination');
-        console.log('req.body.TEST ' + req.body.TEST);
-        console.log('title ' + req.body.Title);
-        console.log('content ' + req.body.Content);
-        cb(null, './upload/')
+        var dirPath = './upload/' + req.body.Email.substring(2, req.body.Email.length);
+        
+        if(fs.existsSync(dirPath) == false)
+        {
+            fs.mkdir(dirPath, 0666, function(err) {
+                if(err)
+                  console.log('err mkdir');
+                else
+                  console.log('Created newdir');
+            });
+        }
+        
+        cb(null, dirPath)
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname)
+        var dirPath = './upload/' + req.body.Email.substring(2, req.body.Email.length) + '/';
+        var fileName = file.originalname.substring(2, file.originalname.length);
+        var fileNameBuff = file.originalname.substring(2, file.originalname.length);
+        var fileNum = 1;
+
+        while(fs.existsSync(dirPath + fileNameBuff))
+        {
+            fileNameBuff = fileNum + '_' + fileName
+            fileNum++;
+        }
+        
+        cb(null, fileNameBuff)
     }
 });
 var upload = multer({ storage: storage });
@@ -64,11 +84,19 @@ app.post('/postingUpload', upload.array('file', 5), function (req, res) {
 });
 
 app.post('/', upload.array('file', 5), function (req, res) {
-    console.log('test log');
-    console.log('req.body.TEST ' + req.body.TEST);
-    console.log('title ' + req.body.Title);
-	console.log('content ' + req.body.Content);
+    var len = 0;
+    var title;
+    var content;
+    var email;
     
+    title = req.body.Title.substring(2, req.body.Title.length);
+    content = req.body.Content.substring(2, req.body.Content.length);
+    email = req.body.Email.substring(2, req.body.Email.length);
+    
+    console.log('title sub ' + req.body.Content.length);
+	console.log('Title ' + title);
+    console.log('Content ' + content);
+    console.log('Email ' + email);
 });
 
 app.listen(5000, function () {
