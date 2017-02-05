@@ -30,7 +30,12 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
-        <activity android:name=".WritePostActivity"></activity>
+        <activity android:name=".WritePostActivity" />
+        <activity
+            android:name=".MixingActivity"
+            android:label="@string/title_activity_mixing"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".StreamingActivity"></activity>
     </application>
 
 </manifest>
