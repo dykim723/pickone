@@ -1,13 +1,13 @@
 var app = require('express')();
 var bodyParser = require('body-parser');
 var mysql = require('mysql');
-var multer = require('multer')
+var multer = require('multer');
 var fs = require('fs');
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
         var dirPath = './upload/' + req.body.Email.substring(2, req.body.Email.length);
-        
+
         if(fs.existsSync(dirPath) == false)
         {
             fs.mkdir(dirPath, 0666, function(err) {
@@ -17,11 +17,12 @@ var storage = multer.diskStorage({
                   console.log('Created newdir');
             });
         }
-        
+
         cb(null, dirPath)
     },
     filename: function (req, file, cb) {
-        var dirPath = './upload/' + req.body.Email.substring(2, req.body.Email.length) + '/';
+        var email = req.body.Email.substring(2, req.body.Email.length);
+        var dirPath = './upload/' + email + '/';
         var fileName = file.originalname.substring(2, file.originalname.length);
         var fileNameBuff = file.originalname.substring(2, file.originalname.length);
         var fileNum = 1;
@@ -31,6 +32,18 @@ var storage = multer.diskStorage({
             fileNameBuff = fileNum + '_' + fileName
             fileNum++;
         }
+
+        var insertData = {FileNo: 0, FilePath: fileNameBuff, BoardNo: 0, Email: email};
+ 
+        connection.query('INSERT INTO FileInfo SET ?', insertData, function(err, result) {
+            if (err) {
+                console.log('insert query fail');
+                return;
+            }
+            else {
+                console.log('insert query success');
+            }
+        });
         
         cb(null, fileNameBuff)
     }
@@ -39,7 +52,7 @@ var upload = multer({ storage: storage });
 
 var connection = mysql.createConnection({
   host     : '52.78.143.80',
-  user     : 'ionicClient',
+  user     : 'root',
   password : 'qlqjs1989',
   database : 'EnsembleDB'
 });
@@ -68,15 +81,17 @@ app.post('/postingUpload', upload.array('file', 5), function (req, res) {
   
 	connection.connect(function(err) {
 		if (err) {
-		  console.error('error connecting: ' + err.stack);
+		  console.error('DB connecting fail: ' + err.stack);
 		  return;
 		}
 
 		console.log('connected as id ' + connection.threadId);
 	});
 	connection.query('INSERT INTO Board SET ?', insertData, function(err, result) {
-		//if (err) throw err;
-		//console.log('The solution is: ', rows[0].solution);
+		if (err)
+            console.log('insert query fail');
+        else
+            console.log('insert query success');
 	});
 	connection.end();
 
@@ -84,19 +99,53 @@ app.post('/postingUpload', upload.array('file', 5), function (req, res) {
 });
 
 app.post('/', upload.array('file', 5), function (req, res) {
-    var len = 0;
     var title;
     var content;
     var email;
+    var boardNo = 0;
     
     title = req.body.Title.substring(2, req.body.Title.length);
     content = req.body.Content.substring(2, req.body.Content.length);
     email = req.body.Email.substring(2, req.body.Email.length);
     
-    console.log('title sub ' + req.body.Content.length);
 	console.log('Title ' + title);
     console.log('Content ' + content);
     console.log('Email ' + email);
+    
+    var insertData = {BoardNo: 0, Title: title, Content: content, Email: email};
+  
+	connection.query('INSERT INTO Board SET ?', insertData, function(err, result) {
+		if (err) {
+            console.log('insert query fail');
+            return;
+        }
+        else {
+            console.log('insert query success');
+            connection.query('SELECT BoardNo FROM Board WHERE Email = "' + email + '" ORDER BY BoardNo DESC' , function(err, result) {
+                if (err) {
+                    console.log('select query fail');
+                    return;
+                }
+                else {
+                    console.log('select query success');
+                    console.log('result.BoardNo ' + result[0].BoardNo);
+                    boardNo = result[0].BoardNo;
+                    
+                    connection.query('UPDATE FileInfo SET BoardNo = ' + boardNo + ' WHERE BoardNo = 0' , function(err, result) {
+                        if (err) {
+                            console.log('update query fail');
+                            return;
+                        }
+                        else {
+                            console.log('update query success');
+                            var responseVal = {'\"BoardNo\"': boardNo};
+                            res.json(boardNo);
+                        }
+                    });
+                }
+            });
+        }
+	});
 });
 
 app.listen(5000, function () {
