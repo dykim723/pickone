@@ -1,6 +1,7 @@
 package com.team.audiomixer.audiomixer;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
@@ -42,6 +43,7 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
     private ArrayList<Integer> mListInstrumentKey;
     private ListView mMediaListView;
     private MediaListViewAdapter mMediaListVeiwAdapter;
+    private ProgressDialog mProgressDialog;
 
     final int REQ_CODE_IMAGE = 100;
     final int REQ_CODE_AUDIO = 200;
@@ -66,6 +68,8 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         mFilePath = "";
         mMediaListView = (ListView) findViewById(R.id.MediaListView);
         mMediaListVeiwAdapter = new MediaListViewAdapter();
+        mProgressDialog = new ProgressDialog(this);
+
 
         mButtonWrite.setOnClickListener(mBtnWriteOnClickListener);
         mButtonAddImage.setOnClickListener(mBtnAddImageOnClickListener);
@@ -74,6 +78,9 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         mMediaListVeiwAdapter.setDeleteBtnListener(this);
         mMediaListVeiwAdapter.setSelectBtnListener(this);
         mMediaListView.setAdapter(mMediaListVeiwAdapter);
+
+        mProgressDialog.setMessage("Loading...");
+        mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
 
         String [] permissionStr = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
         ActivityCompat.requestPermissions(this, permissionStr, 1);
@@ -211,6 +218,8 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
                 }
             }
 
+            mProgressDialog.show();
+
             new Thread()
             {
                 public void run()
@@ -225,13 +234,13 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
                     mListStringKey.add("Email");
                     mListStringVal.add("TestEmail@gmail.com");
 
-                    excuteFilePost("http://192.168.11.105:5000/", mListStringKey, mListStringVal, mListInstrumentKey, mListFileKey, mListFileVal);
+                    excuteFilePost("http://192.168.11.105:5000/");
                 }
             }.start();
         }
     };
 
-    public void excuteFilePost(String serverURL, ArrayList<String> listStringKey, ArrayList<String> listStringVal, ArrayList<Integer> listFileType, ArrayList<String> listFileKey, ArrayList <String> listFileVal)
+    public void excuteFilePost(String serverURL)
     {
         try {
             URL url = new URL(serverURL);
@@ -242,26 +251,27 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
 
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
             Log.d("WritePost", "excuteFilePost");
+
             // Post Sting
             // name: 서버 변수명
-            for(int i = 0; i < listStringKey.size(); i++)
+            for(int i = 0; i < mListStringKey.size(); i++)
             {
                 wr.writeBytes("\r\n--" + boundary + "\r\n");
-                wr.writeBytes("Content-Disposition: form-data; name=\"" + listStringKey.get(i) + "\"\r\n\r\n"/* + listStringVal.get(i)*/);
-                wr.writeUTF(listStringVal.get(i));
+                wr.writeBytes("Content-Disposition: form-data; name=\"" + mListStringKey.get(i) + "\"\r\n\r\n"/* + listStringVal.get(i)*/);
+                wr.writeUTF(mListStringVal.get(i));
             }
 
             // Post File
             // filename: 서버에 저장할 파일명
-            for(int i = 0; i < listFileKey.size(); i++)
+            for(int i = 0; i < mListFileKey.size(); i++)
             {
                 wr.writeBytes("\r\n--" + boundary + "\r\n");
                 wr.writeBytes("Content-Disposition: form-data; name=\"file\"; filename=\"" /*+ listFileKey.get(i) + "\"\r\n"*/);
-                wr.writeUTF(listFileKey.get(i));
+                wr.writeUTF(mListFileKey.get(i));
                 wr.writeBytes("\"\r\n");
                 wr.writeBytes("Content-Type: application/octet-stream\r\n\r\n");
 
-                FileInputStream fileInputStream = new FileInputStream(listFileVal.get(i));
+                FileInputStream fileInputStream = new FileInputStream(mListFileVal.get(i));
                 int bytesAvailable = fileInputStream.available();
                 int maxBufferSize = 1024;
                 int bufferSize = Math.min(bytesAvailable, maxBufferSize);
@@ -298,11 +308,13 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
             }
 
             rd.close();
+            mProgressDialog.dismiss();
             Log.d("WritePost", "end post");
         }
         catch (IOException e)
         {
             Log.d("WritePost", "Err msg: " + e.getMessage());
+            mProgressDialog.dismiss();
         }
     }
 }
