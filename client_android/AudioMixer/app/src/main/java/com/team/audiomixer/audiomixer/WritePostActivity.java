@@ -3,6 +3,9 @@ package com.team.audiomixer.audiomixer;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.os.Handler;
+import android.os.Message;
+import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -48,6 +51,8 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
     final int REQ_CODE_IMAGE = 100;
     final int REQ_CODE_AUDIO = 200;
     final int REQ_CODE_VIDEO = 300;
+    final int POST_FAIL = 1;
+    final int POST_SUCCESS = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -81,6 +86,8 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
 
         mProgressDialog.setMessage("Loading...");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mProgressDialog.setCanceledOnTouchOutside(false);
+        mProgressDialog.setCancelable(false);
 
         String [] permissionStr = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
         ActivityCompat.requestPermissions(this, permissionStr, 1);
@@ -218,6 +225,11 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
                 }
             }
 
+            if(mEditTextTitle.getText().toString().isEmpty() || mEditTextContent.getText().toString().isEmpty()) {
+                Toast.makeText(getApplicationContext(), "제목 및 내용 입력하세요.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             mProgressDialog.show();
 
             new Thread()
@@ -240,12 +252,44 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         }
     };
 
+    final Handler mHandler = new Handler(){
+        public void handleMessage(Message msg){
+            int boardNo = 0;
+
+            mProgressDialog.dismiss();
+
+            switch (msg.what)
+            {
+                case POST_FAIL:
+                    Toast.makeText(getApplicationContext(), "등록 실패 다시 시도하세요.", Toast.LENGTH_SHORT).show();
+                    break;
+
+                case POST_SUCCESS:
+                    boardNo = msg.arg1;
+                    Intent intent = new Intent(WritePostActivity.this, MixingActivity.class);
+                    intent.putExtra("BOARD_NO", boardNo);
+                    startActivity(intent);
+                    finish();
+                    break;
+
+                default:
+                    break;
+            }
+
+
+        }
+    };
+
+
     public void excuteFilePost(String serverURL)
     {
+        Message handlerMsg = mHandler.obtainMessage();
+
         try {
             URL url = new URL(serverURL);
             String boundary = "s00h00i00n";
             URLConnection con = url.openConnection();
+            con.setConnectTimeout(5000);
             con.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
             con.setDoOutput(true);
 
@@ -305,16 +349,22 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
             while ((line = rd.readLine()) != null)
             {
                 Log.d("WritePost", "server response: " + line);
+                handlerMsg.arg1 = Integer.parseInt(line);
             }
 
             rd.close();
-            mProgressDialog.dismiss();
+
+            handlerMsg.what = POST_SUCCESS;
+            mHandler.sendMessage(handlerMsg);
+
             Log.d("WritePost", "end post");
         }
         catch (IOException e)
         {
+            handlerMsg.what = POST_FAIL;
+            mHandler.sendMessage(handlerMsg);
+
             Log.d("WritePost", "Err msg: " + e.getMessage());
-            mProgressDialog.dismiss();
         }
     }
 }

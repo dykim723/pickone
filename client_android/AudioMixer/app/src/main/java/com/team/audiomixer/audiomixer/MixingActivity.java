@@ -8,6 +8,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,6 +18,7 @@ import java.io.IOException;
 public class MixingActivity extends AppCompatActivity {
 
     private Button mBtnStartMixing;
+    private int mBoardNo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +28,9 @@ public class MixingActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         mBtnStartMixing = (Button)findViewById(R.id.btnStartMixing);
+        mBoardNo = getIntent().getIntExtra("BOARD_NO", 0);
+
+        Toast.makeText(getApplicationContext(), "등록 성공 MixingActivity로 이동, BoadNo: " + mBoardNo, Toast.LENGTH_SHORT).show();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
