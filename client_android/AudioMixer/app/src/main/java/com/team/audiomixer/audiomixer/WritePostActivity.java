@@ -246,7 +246,7 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
                     mListStringKey.add("Email");
                     mListStringVal.add("TestEmail@gmail.com");
 
-                    excuteFilePost("http://192.168.11.105:5000/");
+                    excuteFilePost("http://localhost:5000/posting");
                 }
             }.start();
         }

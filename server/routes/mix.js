@@ -7,8 +7,12 @@ var PythonShell = require('python-shell');
 var pyshell;
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
+router.post('/', function(req, res, next) {
   res.send('Start Mixing !!!!');
+
+  //var jsonObj = JSON.parse(req.body);
+
+  console.log('Board No:' + req.body);
 
   pyshell = new PythonShell(mixLib);
 

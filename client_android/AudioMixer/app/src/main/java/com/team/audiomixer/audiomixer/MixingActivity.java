@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.team.audiomixer.audiomixer.util.ServerConnUtil;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,14 +55,10 @@ public class MixingActivity extends AppCompatActivity {
                 public void run() {
                     JSONObject json = new JSONObject();
                     try {
-                        json.put("TEST", "Object");
-                        json.put("Title", "Title");
-                        json.put("Content", "Content");
+                        json.put("BOARD_NO", mBoardNo);
 
-                        LoginActivity.excuteGet("http://localhost:5000/mix/");
+                        ServerConnUtil.excutePost("http://localhost:5000/mix/", json);
                     } catch (JSONException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
                         e.printStackTrace();
                     }
 
