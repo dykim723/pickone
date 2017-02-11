@@ -1,14 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
-var mysql      = require('mysql');
-var pool = mysql.createPool({
-    connectionLimit: 3,
-    host: '52.78.143.80',
-    user: 'ionicClient',
-    database: 'EnsembleDB',
-    password: 'qlqjs1989'
-});
+var connection = require('./util/db');
 
 
 router.post('/', function (req, res, next) {

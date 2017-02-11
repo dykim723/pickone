@@ -38,7 +38,3 @@ if __name__ == '__main__':
 
     mixer = Mixer()
 
-    mixer.add("lib/test_file/1.mp3")
-    mixer.add("lib/test_file/2.mp3")
-    
-    mixer.run();

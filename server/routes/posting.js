@@ -1,9 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var bodyParser = require('body-parser');
-var mysql = require('mysql');
 var multer = require('multer');
 var fs = require('fs');
+var connection = require('./util/db');
 
 var app = express();
 
@@ -54,12 +54,12 @@ var storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 
-var connection = mysql.createConnection({
+/*var connection = mysql.createConnection({
     host     : '52.78.143.80',
     user     : 'root',
     password : 'qlqjs1989',
     database : 'EnsembleDB'
-});
+});*/
 
 /*var connection = mysql.createConnection({
     host     : '52.78.143.80',
