@@ -26,8 +26,8 @@ function Mix(boardNo) {
     connection.query(queryGetFilePaths, mysql.escape(_boardNo), function(err, rows){
       if(err) throw err;
 
-      console.log('Data received from Db:\n');
-      console.log(rows);
+     // console.log('Data received from Db:\n');
+      //console.log(rows);
 
 
       var options = {
@@ -37,11 +37,12 @@ function Mix(boardNo) {
 
       for (var i = 0; i < rows.length; i++) {
         var row = rows[i];
-        console.log(row.FilePath);
+        //console.log(row.FilePath);
 
         options.args.push(row.FilePath);
       }
-      console.log(options.args);
+
+      //console.log(options.args);
 
       PythonShell.run('lib/mixer.py', options, function (err, results) {
         if (err) throw err;
