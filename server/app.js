@@ -4,7 +4,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
+var fs = require('fs');
 var index = require('./routes/index');
 var users = require('./routes/users');
 var login = require('./routes/login');
@@ -36,10 +36,10 @@ app.use('/mix', mix);
 
 
 app.get('/test', function(req, res){
-  fs.readFile('public/combined.mp3', function(error, data){
-    res.writeHead(200, { 'Content-Type': 'audio/mp3'});
-    res.end(data);
-  });
+   fs.readFile('/TestEmail@gmail.com/bird.ogg', function(error, data){
+   res.writeHead(200, { 'Content-Type': 'audio/ogg'});
+   res.end(data);
+   });
 });
 
 // catch 404 and forward to error handler

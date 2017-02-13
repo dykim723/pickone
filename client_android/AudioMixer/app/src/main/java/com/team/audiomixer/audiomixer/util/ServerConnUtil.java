@@ -1,5 +1,7 @@
 package com.team.audiomixer.audiomixer.util;
 
+import android.net.Uri;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -62,7 +64,7 @@ public class ServerConnUtil {
     }
 
 
-    public static String excuteGet(String targetURL) throws IOException {
+    public static String executeGet(String targetURL) throws IOException {
         URL url = null;
         BufferedReader reader = null;
         StringBuilder stringBuilder;
@@ -116,6 +118,21 @@ public class ServerConnUtil {
             }
         }
 
+    }
+
+    public static String executeGet(String targetURL, String boardNo) throws IOException {
+        URL url = null;
+        BufferedReader reader = null;
+        StringBuilder stringBuilder;
+
+        Uri.Builder uri = new Uri.Builder()
+                .scheme("http")
+                .encodedAuthority(targetURL) // with Port for Prototype
+                //.authority(targetURL) // Without Port
+                .appendPath("mix")
+                .appendQueryParameter("board_no", boardNo);
+
+        return executeGet(uri.build().toString());
     }
 
 }

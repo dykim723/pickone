@@ -49,16 +49,11 @@ public class MixingActivity extends AppCompatActivity {
     Button.OnClickListener mBtnStartMixingClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            Log.d("Start Mixing", "!!!!!");
-
             new Thread() {
                 public void run() {
-                    JSONObject json = new JSONObject();
                     try {
-                        json.put("BOARD_NO", mBoardNo);
-
-                        ServerConnUtil.excutePost("http://localhost:5000/mix/", json);
-                    } catch (JSONException e) {
+                        ServerConnUtil.executeGet("localhost:5000", String.valueOf(mBoardNo));
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
 

@@ -4,6 +4,7 @@ var mixLib = 'lib/mixer.py';
 var path = require('path');
 var connection = require('./util/db');
 var mysql = require('mysql');
+var fs = require('fs')
 
 var PythonShell = require('python-shell');
 
@@ -15,18 +16,18 @@ function Mix(boardNo) {
     connection.query(queryGetCount, mysql.escape(_boardNo), function(err,rows){
       if(err) throw err;
 
-      console.log('Data received from Db:\n');
-      console.log(rows);
+      //console.log('Data received from Db:\n');
+      //console.log(rows);
       return rows;
     });
   }
 
-  this.run = function(){
-    var queryGetFilePaths = 'SELECT FilePath from FileInfo WHERE boardNo = ?';
-    connection.query(queryGetFilePaths, mysql.escape(_boardNo), function(err, rows){
+  this.run = function(callback){
+    var queryGetFilePaths = 'SELECT Email, FilePath from FileInfo WHERE boardNo = ?';
+    connection.query(queryGetFilePaths, _boardNo, function(err, rows){
       if(err) throw err;
 
-     // console.log('Data received from Db:\n');
+      //console.log('Data received from Db:\n');
       //console.log(rows);
 
 
@@ -35,12 +36,17 @@ function Mix(boardNo) {
         args: []
       };
 
-      for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        //console.log(row.FilePath);
+      if(rows.length != 0) {
+        options.args.push(rows[0].Email);
 
-        options.args.push(row.FilePath);
+        for (var i = 0; i < rows.length; i++) {
+          var row = rows[i];
+          //console.log(row.FilePath);
+
+          options.args.push(row.FilePath);
+        }
       }
+
 
       //console.log(options.args);
 
@@ -48,6 +54,7 @@ function Mix(boardNo) {
         if (err) throw err;
         // results is an array consisting of messages collected during execution
         console.log('results: %j', results);
+        callback();
       });
 
     });
@@ -55,16 +62,19 @@ function Mix(boardNo) {
 };
 
 /* GET users listing. */
-router.post('/', function(req, res, next) {
-  res.send('Start Mixing !!!!');
+router.get('/*', function(req, res, next) {
+  //res.send('Start Mixing !!!!');
+  var boardNo = req.query.board_no;
+  console.log('board_no:', boardNo);
 
-  req.accepts('application/json');
-  json = req.body;
-  console.log(json.BOARD_NO);
+  var mix = new Mix(boardNo);
 
-  var mix = new Mix(json.BOARD_NO);
-
-  mix.run();
+  mix.run(function(){
+    /*fs.readFile('/upload/TestEmail@gmail.com/Lecture002.mp3', function(error, data){
+      res.writeHead(200, { 'Content-Type': 'audio/mp3'});
+      res.end(data);
+    });*/
+  });
 
 
 });
