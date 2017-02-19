@@ -58,6 +58,8 @@ app.use('/postingUpload', posting);
 app.use('/mix', mix);
 app.use('/mix/', mix);
 
+app.use('/static', express.static('public'));
+
 app.get('/test', function(req, res){
   fs.readFile('public/combined.mp3', function(error, data){
     res.writeHead(200, { 'Content-Type': 'audio/mp3'});
@@ -76,5 +78,7 @@ app.use(function(req, res, next) {
 // error handler
 
 
-
+app.listen(5000, function () {
+  console.log('Example app listening on port 5000!');
+});
 module.exports = app;
