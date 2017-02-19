@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:allowBackup="true"
@@ -35,7 +36,8 @@
             android:name=".MixingActivity"
             android:label="@string/title_activity_mixing"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".StreamingActivity"></activity>
+        <activity android:name=".StreamingActivity" />
+        <activity android:name=".RecordActivity"></activity>
     </application>
 
 </manifest>

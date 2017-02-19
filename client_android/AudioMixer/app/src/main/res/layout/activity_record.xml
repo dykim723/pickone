@@ -56,18 +56,18 @@
         android:layout_weight="1"
         android:orientation="horizontal">
         <Button
-            android:text="Record START"
+            android:text="BPM START"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:id="@+id/buttonStartAndStop" />
         <Button
-            android:text="Record PAUSE"
+            android:text="BPM START"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:enabled="false"
-            android:id="@+id/buttonPlayAndPause" />
+            android:enabled="true"
+            android:id="@+id/buttonBPMStartAndStop" />
     </LinearLayout>
 
 </LinearLayout>

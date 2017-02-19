@@ -91,7 +91,6 @@ public class MainActivity extends AppCompatActivity
             MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.nav_gallery) {
             myIntent = new Intent(MainActivity.this, WritePostActivity.class);
-            //myIntent.putExtra("key", "Login"); //Optional parameters
             MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.content_mixing) {
             myIntent = new Intent(MainActivity.this, MixingActivity.class);
@@ -100,7 +99,8 @@ public class MainActivity extends AppCompatActivity
             myIntent = new Intent(MainActivity.this, StreamingActivity.class);
             MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.nav_share) {
-
+            myIntent = new Intent(MainActivity.this, RecordActivity.class);
+            MainActivity.this.startActivity(myIntent);
         } else if (id == R.id.nav_send) {
 
         }
