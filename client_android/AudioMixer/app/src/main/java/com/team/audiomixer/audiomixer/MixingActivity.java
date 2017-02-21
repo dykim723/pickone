@@ -52,7 +52,7 @@ public class MixingActivity extends AppCompatActivity {
             new Thread() {
                 public void run() {
                     try {
-                        ServerConnUtil.executeGet("localhost:5000", String.valueOf(mBoardNo));
+                        ServerConnUtil.executeGet("192.168.219.5:5000", String.valueOf(mBoardNo));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

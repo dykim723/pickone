@@ -15,7 +15,7 @@ class Mixer:
         self.userID = user + '\\'
         self.uploadPath = '\\upload\\'
         self.basePath = os.getcwd() + self.uploadPath + self.userID
-        self.exportPath = self.basePath
+        self.exportPath = os.getcwd() + '\\public\\files\\' + self.userID
 
     def run(self):
 
@@ -32,12 +32,15 @@ class Mixer:
 
                 baseSound = baseSound.overlay(sound)
 
-            path = baseSound.export(self.basePath + "combined.ogg", format='ogg')
-            print("Completed: " + str(path))
+            if not os.path.exists(self.exportPath):
+                os.makedirs(self.exportPath)
+
+            path = baseSound.export(self.exportPath + "combined.ogg", format='ogg')
+            print(self.exportPath + "combined.ogg")
 
     def add(self, file):
         self.fileList.put(file)
-        print("added count: " + str(self.fileList.qsize()))
+        #print("added count: " + str(self.fileList.qsize()))
 
 
 if __name__ == '__main__':

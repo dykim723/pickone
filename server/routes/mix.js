@@ -22,6 +22,20 @@ function Mix(boardNo) {
     });
   }
 
+  this.insertFileToMixedTable = function(filePath){
+      var _mixedDate = require('moment')().format('YYYY-MM-DD HH:mm:ss');
+      var _mixedFile = {'Index' : 0,
+                        'FileNo': _boardNo,
+                        'MixDate': _mixedDate};
+
+      console.log(_mixedDate);
+      var queryInsertMixedTable = 'INSERT INTO MixedInfo set ?';
+
+      connection.query(queryInsertMixedTable, _mixedFile, function(err, rows){
+        if(err) throw err;
+      });
+  }
+
   this.run = function(callback){
     var queryGetFilePaths = 'SELECT Email, FilePath from FileInfo WHERE boardNo = ?';
     connection.query(queryGetFilePaths, _boardNo, function(err, rows){
@@ -54,7 +68,7 @@ function Mix(boardNo) {
         if (err) throw err;
         // results is an array consisting of messages collected during execution
         console.log('results: %j', results);
-        callback();
+        callback(results);
       });
 
     });
@@ -69,11 +83,14 @@ router.get('/*', function(req, res, next) {
 
   var mix = new Mix(boardNo);
 
-  mix.run(function(){
+  mix.run(function(filePath){
+    res.json({file_path:filePath});
     /*fs.readFile('/upload/TestEmail@gmail.com/Lecture002.mp3', function(error, data){
       res.writeHead(200, { 'Content-Type': 'audio/mp3'});
       res.end(data);
     });*/
+
+    mix.insertFileToMixedTable("combined.ogg");
   });
 
 

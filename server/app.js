@@ -36,10 +36,10 @@ app.use('/mix', mix);
 
 
 app.get('/test', function(req, res){
-   fs.readFile('/TestEmail@gmail.com/bird.ogg', function(error, data){
-   res.writeHead(200, { 'Content-Type': 'audio/ogg'});
-   res.end(data);
-   });
+    fs.readFile('public/combined.mp3', function(error, data){
+        res.writeHead(200, { 'Content-Type': 'audio/mp3'});
+        res.end(data);
+    });
 });
 
 // catch 404 and forward to error handler
