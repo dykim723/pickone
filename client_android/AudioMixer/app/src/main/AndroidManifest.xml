@@ -37,7 +37,8 @@
             android:label="@string/title_activity_mixing"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".StreamingActivity" />
-        <activity android:name=".RecordActivity"></activity>
+        <activity android:name=".RecordActivity" />
+        <activity android:name=".CardListActivity"></activity>
     </application>
 
 </manifest>
