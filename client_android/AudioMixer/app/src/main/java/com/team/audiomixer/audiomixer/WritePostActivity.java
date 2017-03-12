@@ -294,7 +294,7 @@ public class WritePostActivity extends AppCompatActivity
                     else if(mOptionThree.isChecked() == true)
                         mListStringVal.add("7");
 
-                    excuteFilePost("http://192.168.11.108:5000/");
+                    excuteFilePost("http://192.168.11.108:5000/postingUpload");
                 }
             }.start();
         }
