@@ -19,6 +19,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.widget.ImageButton;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -39,6 +40,9 @@ public class WritePostActivity extends AppCompatActivity
     private EditText mEditTextLeft;
     private EditText mEditTextRight;
     private Button mButtonWrite;
+    private RadioButton mOptionOne;
+    private RadioButton mOptionTwo;
+    private RadioButton mOptionThree;
     private ImageButton mButtonAddLeftImage;
     private ImageButton mButtonAddRightImage;
     private ArrayList<String> mListStringKey;
@@ -62,9 +66,16 @@ public class WritePostActivity extends AppCompatActivity
         mEditTextTitle = (EditText) findViewById(R.id.editTextTitle);
         mEditTextLeft = (EditText) findViewById(R.id.editTextLeft);
         mEditTextRight = (EditText) findViewById(R.id.editTextRight);
+
         mButtonWrite = (Button) findViewById(R.id.buttonWrite);
         mButtonAddLeftImage = (ImageButton) findViewById(R.id.buttonAddLeftImage);
         mButtonAddRightImage = (ImageButton) findViewById(R.id.buttonAddRightImage);
+
+        mOptionOne = (RadioButton) findViewById(R.id.optionOne);
+        mOptionTwo = (RadioButton) findViewById(R.id.optionTwo);
+        mOptionThree = (RadioButton) findViewById(R.id.optionThree);
+        mOptionOne.setChecked(true);
+
         mListFileKey = new ArrayList<String>();
         mListFileVal = new ArrayList<String>();
         mListStringKey = new ArrayList<String>();
@@ -275,7 +286,15 @@ public class WritePostActivity extends AppCompatActivity
                     mListStringKey.add("Email");
                     mListStringVal.add("TestEmail@gmail.com");
 
-                    excuteFilePost("http://172.30.1.41:5000/");
+                    mListStringKey.add("PickCount");
+                    if(mOptionOne.isChecked() == true)
+                        mListStringVal.add("3");
+                    else if(mOptionTwo.isChecked() == true)
+                        mListStringVal.add("5");
+                    else if(mOptionThree.isChecked() == true)
+                        mListStringVal.add("7");
+
+                    excuteFilePost("http://192.168.11.108:5000/");
                 }
             }.start();
         }

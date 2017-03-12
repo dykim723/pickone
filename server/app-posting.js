@@ -78,11 +78,13 @@ app.post('/', upload.array('file', 5), function (req, res) {
     var leftText;
 	var rightText;
     var email;
+	var pickCount;
     var contentNo = 0;
     
     title = req.body.Title.substring(2, req.body.Title.length);
     leftText = req.body.LeftText.substring(2, req.body.LeftText.length);
 	rightText = req.body.RightText.substring(2, req.body.RightText.length);
+	pickCount = req.body.PickCount.substring(2, req.body.PickCount.length);
     email = req.body.Email.substring(2, req.body.Email.length);
     
 	console.log('Title ' + title);
@@ -92,7 +94,7 @@ app.post('/', upload.array('file', 5), function (req, res) {
     var insertData = {ContentNo: 0, Email: email, Title: title
 	, LeftText: leftText, LeftImage: leftFileNmae, LeftPick: 0
 	, RightText: rightText, RightImage: rightFileNmae, RightPick: 0
-	, RegDate: null};
+	, PickCount: Number(pickCount), RegDate: null};
   
 	connection.query('INSERT INTO Content SET ?', insertData, function(err, result) {
 		if (err) {

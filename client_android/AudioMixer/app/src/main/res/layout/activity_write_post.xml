@@ -4,20 +4,19 @@
     android:id="@+id/activity_write_post"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="16dp"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="16dp"
+    android:paddingBottom="5dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingTop="5dp"
     android:orientation="vertical"
     tools:context="com.team.audiomixer.audiomixer.WritePostActivity">
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_weight="1.3"
         android:inputType="textShortMessage"
         android:hint="제목을 입력하세요."
-        android:ems="10"
         android:id="@+id/editTextTitle"
         android:maxLines="1" />
 
@@ -62,6 +61,37 @@
             android:layout_weight="1"
             android:id="@+id/buttonAddRightImage" />
     </LinearLayout>
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.6"
+        android:orientation="horizontal" >
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5" />
+        <RadioButton
+            android:id="@+id/optionOne"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="3 명" />
+
+        <RadioButton
+            android:id="@+id/optionTwo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="5 명" />
+
+        <RadioButton
+            android:id="@+id/optionThree"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="7 명" />
+    </RadioGroup>
 
     <Button
         android:text="등록"
