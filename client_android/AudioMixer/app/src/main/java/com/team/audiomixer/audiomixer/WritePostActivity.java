@@ -2,12 +2,13 @@ package com.team.audiomixer.audiomixer;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,8 +18,11 @@ import android.widget.EditText;
 import android.content.Intent;
 import android.database.Cursor;
 import android.provider.MediaStore;
-import android.widget.ListView;
+import android.widget.ImageButton;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -30,27 +34,22 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 
 public class WritePostActivity extends AppCompatActivity
-implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
-         , MediaListViewAdapter.MediaListViewSelectBtnClickListener
 {
     private EditText mEditTextTitle;
-    private EditText mEditTextContent;
+    private EditText mEditTextLeft;
+    private EditText mEditTextRight;
     private Button mButtonWrite;
-    private Button mButtonAddImage;
-    private Button mButtonAddMedia;
-    private String mFilePath;
+    private ImageButton mButtonAddLeftImage;
+    private ImageButton mButtonAddRightImage;
     private ArrayList<String> mListStringKey;
     private ArrayList<String> mListStringVal;
     private ArrayList<String> mListFileKey;
     private ArrayList<String> mListFileVal;
-    private ArrayList<Integer> mListInstrumentKey;
-    private ListView mMediaListView;
-    private MediaListViewAdapter mMediaListVeiwAdapter;
     private ProgressDialog mProgressDialog;
 
-    final int REQ_CODE_IMAGE = 100;
-    final int REQ_CODE_AUDIO = 200;
-    final int REQ_CODE_VIDEO = 300;
+    final int REQ_CODE_LEFT_IMAGE = 100;
+    final int REQ_CODE_RIGHT_IMAGE = 200;
+
     final int POST_FAIL = 1;
     final int POST_SUCCESS = 2;
 
@@ -61,28 +60,21 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         setContentView(R.layout.activity_write_post);
 
         mEditTextTitle = (EditText) findViewById(R.id.editTextTitle);
-        mEditTextContent = (EditText) findViewById(R.id.editTextContent);
+        mEditTextLeft = (EditText) findViewById(R.id.editTextLeft);
+        mEditTextRight = (EditText) findViewById(R.id.editTextRight);
         mButtonWrite = (Button) findViewById(R.id.buttonWrite);
-        mButtonAddImage = (Button) findViewById(R.id.buttonAddImage);
-        mButtonAddMedia = (Button) findViewById(R.id.buttonAddMedia);
+        mButtonAddLeftImage = (ImageButton) findViewById(R.id.buttonAddLeftImage);
+        mButtonAddRightImage = (ImageButton) findViewById(R.id.buttonAddRightImage);
         mListFileKey = new ArrayList<String>();
         mListFileVal = new ArrayList<String>();
         mListStringKey = new ArrayList<String>();
         mListStringVal = new ArrayList<String>();
-        mListInstrumentKey = new ArrayList<Integer>();
-        mFilePath = "";
-        mMediaListView = (ListView) findViewById(R.id.MediaListView);
-        mMediaListVeiwAdapter = new MediaListViewAdapter();
         mProgressDialog = new ProgressDialog(this);
 
 
         mButtonWrite.setOnClickListener(mBtnWriteOnClickListener);
-        mButtonAddImage.setOnClickListener(mBtnAddImageOnClickListener);
-        mButtonAddMedia.setOnClickListener(mBtnAddMediaOnClickListener);
-
-        mMediaListVeiwAdapter.setDeleteBtnListener(this);
-        mMediaListVeiwAdapter.setSelectBtnListener(this);
-        mMediaListView.setAdapter(mMediaListVeiwAdapter);
+        mButtonAddLeftImage.setOnClickListener(mBtnAddLeftImageOnClickListener);
+        mButtonAddRightImage.setOnClickListener(mBtnAddRightImageOnClickListener);
 
         mProgressDialog.setMessage("Loading...");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -93,47 +85,83 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         ActivityCompat.requestPermissions(this, permissionStr, 1);
     }
 
-    public void addMediaItem()
+    /**
+     * EXIF정보를 회전각도로 변환하는 메서드
+     *
+     * @param exifOrientation EXIF 회전각
+     * @return 실제 각도
+     */
+    public int exifOrientationToDegrees(int exifOrientation)
     {
-        if(mFilePath.length() > 0)
+        if(exifOrientation == ExifInterface.ORIENTATION_ROTATE_90)
         {
-            mListFileKey.add(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
-            mListFileVal.add(mFilePath);
-            mMediaListVeiwAdapter.addItem(mFilePath.substring(mFilePath.lastIndexOf('/') + 1));
-            mMediaListVeiwAdapter.notifyDataSetChanged();
-            mListInstrumentKey.add(-1);
+            return 90;
         }
+        else if(exifOrientation == ExifInterface.ORIENTATION_ROTATE_180)
+        {
+            return 180;
+        }
+        else if(exifOrientation == ExifInterface.ORIENTATION_ROTATE_270)
+        {
+            return 270;
+        }
+        return 0;
     }
 
-    @Override
-    public void onClickListenerMediaListViewDeleteBtn(int position) {
-        Log.d("WritePost", "delete Button listener in activity");
-        mListFileKey.remove(position);
-        mListFileVal.remove(position);
-    }
+    /**
+     * 이미지를 회전시킵니다.
+     *
+     * @param bitmap 비트맵 이미지
+     * @param degrees 회전 각도
+     * @return 회전된 이미지
+     */
+    public Bitmap rotate(Bitmap bitmap, int degrees)
+    {
+        if(degrees != 0 && bitmap != null)
+        {
+            Matrix m = new Matrix();
+            m.setRotate(degrees, (float) bitmap.getWidth() / 2,
+                    (float) bitmap.getHeight() / 2);
 
-    @Override
-    public void onClickListenerMediaListViewSelectBtn(int position) {
-        final String[] items = {"기타", "드럼", "피아노", "보컬", "MIX", "사진/비디오"};
-        final int pos = position;
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-
-        // 제목셋팅
-        alertDialogBuilder.setTitle("악기 선택");
-        alertDialogBuilder.setSingleChoiceItems(items, -1,
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog,int id) {
-                    Log.d("WritePost", items[id] + " 선택");
-                    mListInstrumentKey.set(pos, id);
-                    mMediaListVeiwAdapter.setSelectBtnText(pos, items[id]);
-                    dialog.dismiss();
+            try
+            {
+                Bitmap converted = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), m, true);
+                if(bitmap != converted)
+                {
+                    bitmap.recycle();
+                    bitmap = converted;
                 }
             }
-        );
+            catch(OutOfMemoryError ex)
+            {
+                // 메모리가 부족하여 회전을 시키지 못할 경우 그냥 원본을 반환합니다.
+            }
+        }
+        return bitmap;
+    }
 
-        // 다이얼로그 생성, 보여주기
-        AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+    Bitmap makeBitmap(String path) {
+        int dstWidth = mButtonAddLeftImage.getWidth() - 10;
+        int dstHeight = mButtonAddLeftImage.getHeight() - 10;
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inSampleSize = 4;
+        Bitmap src = BitmapFactory.decodeFile(path, options);
+
+        // 이미지를 상황에 맞게 회전시킨다
+        try {
+            ExifInterface exif = new ExifInterface(path);
+            int exifOrientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            int exifDegree = exifOrientationToDegrees(exifOrientation);
+            src = rotate(src, exifDegree);
+        }
+        catch(Exception e) {
+            Log.d("WritePost", "makeImage " + e.getMessage());
+        }
+
+        Bitmap resizeImage = Bitmap.createScaledBitmap( src, dstWidth, dstHeight, true );
+
+        return resizeImage;
     }
 
     @Override
@@ -143,27 +171,35 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         if(resultCode == Activity.RESULT_OK)
         {
             String path = null;
+            String key = null;
+            int dstWidth = mButtonAddLeftImage.getWidth();
+            int dstHeight = mButtonAddLeftImage.getHeight();
 
             switch (requestCode)
             {
-                case REQ_CODE_IMAGE:
+                case REQ_CODE_LEFT_IMAGE:
                     path = getMediaFileInfo(data, MediaStore.Images.Media.DATA);
+                    key = "LeftImage.jpg";
+                    mButtonAddLeftImage.setImageBitmap(makeBitmap(path));
                     break;
 
-                case REQ_CODE_AUDIO:
-                    path = getMediaFileInfo(data, MediaStore.Audio.Media.DATA);
-                    break;
-
-                case REQ_CODE_VIDEO:
-                    path = getMediaFileInfo(data, MediaStore.Video.Media.DATA);
+                case REQ_CODE_RIGHT_IMAGE:
+                    path = getMediaFileInfo(data, MediaStore.Images.Media.DATA);
+                    key = "RightImage.jpg";
+                    mButtonAddRightImage.setImageBitmap(makeBitmap(path));
                     break;
 
                 default:
                     break;
             }
 
-            mFilePath = path;
-            addMediaItem();
+            if(path != null && key != null)
+            {
+                //mListFileKey.add(path.substring(path.lastIndexOf('/') + 1));
+                mListFileKey.add(key);
+                mListFileVal.add(path);
+            }
+
             Log.d("WritePost", "Path : " + path);
         }
     }
@@ -183,29 +219,29 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         return path;
     }
 
-    Button.OnClickListener mBtnAddMediaOnClickListener = new View.OnClickListener()
+    Button.OnClickListener mBtnAddRightImageOnClickListener = new View.OnClickListener()
     {
         public void onClick(View v)
         {
-            Log.d("WritePost", "Add media clicked");
-
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType(android.provider.MediaStore.Audio.Media.CONTENT_TYPE);
-            intent.setData(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(intent, REQ_CODE_AUDIO);
-        }
-    };
-
-    Button.OnClickListener mBtnAddImageOnClickListener = new View.OnClickListener()
-    {
-        public void onClick(View v)
-        {
-            Log.d("WritePost", "Add image clicked");
+            Log.d("WritePost", "Add mBtnAddRightImageOnClickListener clicked");
 
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
             intent.setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(intent, REQ_CODE_IMAGE);
+            startActivityForResult(intent, REQ_CODE_RIGHT_IMAGE);
+        }
+    };
+
+    Button.OnClickListener mBtnAddLeftImageOnClickListener = new View.OnClickListener()
+    {
+        public void onClick(View v)
+        {
+            Log.d("WritePost", "Add mBtnAddLeftImageOnClickListener clicked");
+
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType(android.provider.MediaStore.Images.Media.CONTENT_TYPE);
+            intent.setData(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(intent, REQ_CODE_LEFT_IMAGE);
         }
     };
 
@@ -214,18 +250,9 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
         public void onClick(View v)
         {
             Log.d("WritePost", mEditTextTitle.getText().toString());
-            Log.d("WritePost", mEditTextContent.getText().toString());
+            Log.d("WritePost", mEditTextLeft.getText().toString());
 
-            for(int i = 0; i < mListInstrumentKey.size(); i++)
-            {
-                if(mListInstrumentKey.get(i) == -1)
-                {
-                    Toast.makeText(getApplicationContext(), "악기를 선택하세요.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-            }
-
-            if(mEditTextTitle.getText().toString().isEmpty() || mEditTextContent.getText().toString().isEmpty()) {
+            if(mEditTextTitle.getText().toString().isEmpty() || mEditTextLeft.getText().toString().isEmpty() || mEditTextRight.getText().toString().isEmpty()) {
                 Toast.makeText(getApplicationContext(), "제목 및 내용 입력하세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -241,12 +268,14 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
 
                     mListStringKey.add("Title");
                     mListStringVal.add(mEditTextTitle.getText().toString());
-                    mListStringKey.add("Content");
-                    mListStringVal.add(mEditTextContent.getText().toString());
+                    mListStringKey.add("LeftText");
+                    mListStringVal.add(mEditTextLeft.getText().toString());
+                    mListStringKey.add("RightText");
+                    mListStringVal.add(mEditTextRight.getText().toString());
                     mListStringKey.add("Email");
                     mListStringVal.add("TestEmail@gmail.com");
 
-                    excuteFilePost("http://192.168.11.105:5000/");
+                    excuteFilePost("http://172.30.1.41:5000/");
                 }
             }.start();
         }
@@ -254,7 +283,7 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
 
     final Handler mHandler = new Handler(){
         public void handleMessage(Message msg){
-            int boardNo = 0;
+            int contentNo = 0;
 
             mProgressDialog.dismiss();
 
@@ -265,18 +294,17 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
                     break;
 
                 case POST_SUCCESS:
-                    boardNo = msg.arg1;
+                    contentNo = msg.arg1;
                     Intent intent = new Intent(WritePostActivity.this, MixingActivity.class);
-                    intent.putExtra("BOARD_NO", boardNo);
+                    intent.putExtra("BOARD_NO", contentNo);
                     startActivity(intent);
                     finish();
+                    Toast.makeText(getApplicationContext(), "등록 성공", Toast.LENGTH_SHORT).show();
                     break;
 
                 default:
                     break;
             }
-
-
         }
     };
 
@@ -344,12 +372,24 @@ implements MediaListViewAdapter.MediaListViewDeleteBtnClickListener
             // server return
             BufferedReader rd = null;
             rd = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-            String line = null;
+            String line = "";
+            String strJson = "";
 
             while ((line = rd.readLine()) != null)
             {
                 Log.d("WritePost", "server response: " + line);
-                handlerMsg.arg1 = Integer.parseInt(line);
+                strJson += line;
+            }
+
+            try
+            {
+                JSONObject jsonObject = new JSONObject(strJson);
+                int contentNo = jsonObject.getInt("ContentNo");
+                handlerMsg.arg1 = contentNo;
+            }
+            catch (JSONException e)
+            {
+                Log.d("WritePost", "server response json parsing fail " + strJson);
             }
 
             rd.close();

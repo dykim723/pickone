@@ -4,6 +4,9 @@ var mysql = require('mysql');
 var multer = require('multer');
 var fs = require('fs');
 
+var leftFileNmae = '';
+var rightFileNmae = '';
+
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
         var dirPath = './upload/' + req.body.Email.substring(2, req.body.Email.length);
@@ -33,18 +36,15 @@ var storage = multer.diskStorage({
             fileNum++;
         }
 
-        var insertData = {FileNo: 0, FilePath: fileNameBuff, BoardNo: 0, Email: email};
- 
-        connection.query('INSERT INTO FileInfo SET ?', insertData, function(err, result) {
-            if (err) {
-                console.log('insert query fail');
-                return;
-            }
-            else {
-                console.log('insert query success');
-            }
-        });
-        
+		if(fileName === 'LeftImage.jpg')
+		{
+			leftFileNmae = fileNameBuff;
+		}
+		else if(fileName === 'RightImage.jpg')
+		{
+			rightFileNmae = fileNameBuff;
+		}
+		
         cb(null, fileNameBuff)
     }
 });
@@ -54,7 +54,7 @@ var connection = mysql.createConnection({
   host     : '52.78.143.80',
   user     : 'root',
   password : 'qlqjs1989',
-  database : 'EnsembleDB'
+  database : 'PickOneDB'
 });
 
 app.use(bodyParser.json());
@@ -73,79 +73,51 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.post('/postingUpload', upload.array('file', 5), function (req, res) {
-    console.log(req.body.title);
-	console.log(req.body.content);
-	
-	var insertData = {BoardNo: 0, Text: req.body.content, Email: 'TestMail@gmail.com'};
-  
-	connection.connect(function(err) {
-		if (err) {
-		  console.error('DB connecting fail: ' + err.stack);
-		  return;
-		}
-
-		console.log('connected as id ' + connection.threadId);
-	});
-	connection.query('INSERT INTO Board SET ?', insertData, function(err, result) {
-		if (err)
-            console.log('insert query fail');
-        else
-            console.log('insert query success');
-	});
-	connection.end();
-
-	res.json(req.body);
-});
-
 app.post('/', upload.array('file', 5), function (req, res) {
     var title;
-    var content;
+    var leftText;
+	var rightText;
     var email;
-    var boardNo = 0;
+    var contentNo = 0;
     
     title = req.body.Title.substring(2, req.body.Title.length);
-    content = req.body.Content.substring(2, req.body.Content.length);
+    leftText = req.body.LeftText.substring(2, req.body.LeftText.length);
+	rightText = req.body.RightText.substring(2, req.body.RightText.length);
     email = req.body.Email.substring(2, req.body.Email.length);
     
 	console.log('Title ' + title);
-    console.log('Content ' + content);
+    console.log('leftText ' + leftText);
     console.log('Email ' + email);
     
-    var insertData = {BoardNo: 0, Title: title, Content: content, Email: email};
+    var insertData = {ContentNo: 0, Email: email, Title: title
+	, LeftText: leftText, LeftImage: leftFileNmae, LeftPick: 0
+	, RightText: rightText, RightImage: rightFileNmae, RightPick: 0
+	, RegDate: null};
   
-	connection.query('INSERT INTO Board SET ?', insertData, function(err, result) {
+	connection.query('INSERT INTO Content SET ?', insertData, function(err, result) {
 		if (err) {
             console.log('insert query fail');
             return;
         }
         else {
             console.log('insert query success');
-            connection.query('SELECT BoardNo FROM Board WHERE Email = "' + email + '" ORDER BY BoardNo DESC' , function(err, result) {
+            connection.query('SELECT ContentNo FROM Content WHERE Email = "' + email + '" ORDER BY ContentNo DESC' , function(err, result) {
                 if (err) {
                     console.log('select query fail');
                     return;
                 }
                 else {
                     console.log('select query success');
-                    console.log('result.BoardNo ' + result[0].BoardNo);
-                    boardNo = result[0].BoardNo;
-                    
-                    connection.query('UPDATE FileInfo SET BoardNo = ' + boardNo + ' WHERE BoardNo = 0' , function(err, result) {
-                        if (err) {
-                            console.log('update query fail');
-                            return;
-                        }
-                        else {
-                            console.log('update query success');
-                            var responseVal = {'\"BoardNo\"': boardNo};
-                            res.json(boardNo);
-                        }
-                    });
+                    console.log('result.ContentNo ' + result[0].ContentNo);
+					contentNo = result[0].ContentNo;
+					res.json({'ContentNo': ''+contentNo});
                 }
             });
         }
 	});
+	
+	leftFileNmae = '';
+	rightFileNmae = '';
 });
 
 app.listen(5000, function () {
