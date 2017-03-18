@@ -27,6 +27,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -45,17 +46,22 @@ public class WritePostActivity extends AppCompatActivity
     private RadioButton mOptionThree;
     private ImageButton mButtonAddLeftImage;
     private ImageButton mButtonAddRightImage;
+    private ProgressDialog mProgressDialog;
     private ArrayList<String> mListStringKey;
     private ArrayList<String> mListStringVal;
     private ArrayList<String> mListFileKey;
     private ArrayList<String> mListFileVal;
-    private ProgressDialog mProgressDialog;
+    private String mLeftFileVal;
+    private String mRightFileVal;
+    private long mTotalFileSize;
+    private long mPostingFileSize;
 
     final int REQ_CODE_LEFT_IMAGE = 100;
     final int REQ_CODE_RIGHT_IMAGE = 200;
 
     final int POST_FAIL = 1;
     final int POST_SUCCESS = 2;
+    final int POST_PROGRESS = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -82,10 +88,14 @@ public class WritePostActivity extends AppCompatActivity
         mListStringVal = new ArrayList<String>();
         mProgressDialog = new ProgressDialog(this);
 
-
         mButtonWrite.setOnClickListener(mBtnWriteOnClickListener);
         mButtonAddLeftImage.setOnClickListener(mBtnAddLeftImageOnClickListener);
         mButtonAddRightImage.setOnClickListener(mBtnAddRightImageOnClickListener);
+
+        mTotalFileSize = 0;
+        mPostingFileSize = 0;
+        mRightFileVal = "";
+        mLeftFileVal = "";
 
         mProgressDialog.setMessage("Loading...");
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -182,7 +192,6 @@ public class WritePostActivity extends AppCompatActivity
         if(resultCode == Activity.RESULT_OK)
         {
             String path = null;
-            String key = null;
             int dstWidth = mButtonAddLeftImage.getWidth();
             int dstHeight = mButtonAddLeftImage.getHeight();
 
@@ -190,25 +199,18 @@ public class WritePostActivity extends AppCompatActivity
             {
                 case REQ_CODE_LEFT_IMAGE:
                     path = getMediaFileInfo(data, MediaStore.Images.Media.DATA);
-                    key = "LeftImage.jpg";
+                    mLeftFileVal = path;
                     mButtonAddLeftImage.setImageBitmap(makeBitmap(path));
                     break;
 
                 case REQ_CODE_RIGHT_IMAGE:
                     path = getMediaFileInfo(data, MediaStore.Images.Media.DATA);
-                    key = "RightImage.jpg";
+                    mRightFileVal = path;
                     mButtonAddRightImage.setImageBitmap(makeBitmap(path));
                     break;
 
                 default:
                     break;
-            }
-
-            if(path != null && key != null)
-            {
-                //mListFileKey.add(path.substring(path.lastIndexOf('/') + 1));
-                mListFileKey.add(key);
-                mListFileVal.add(path);
             }
 
             Log.d("WritePost", "Path : " + path);
@@ -268,6 +270,24 @@ public class WritePostActivity extends AppCompatActivity
                 return;
             }
 
+            mListFileKey.clear();
+            mTotalFileSize = 0;
+            mPostingFileSize = 0;
+            if(mRightFileVal.length() > 0 || mLeftFileVal.length() > 0) {
+                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                mListFileKey.add("LeftImage.jpg");
+                mListFileKey.add("RightImage.jpg");
+                mListFileVal.add(mLeftFileVal);
+                mListFileVal.add(mRightFileVal);
+
+                File left = new File(new String(mLeftFileVal));
+                File right = new File(new String(mRightFileVal));
+                mTotalFileSize += left.length() + right.length();
+            }
+            else {
+                mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            }
+
             mProgressDialog.show();
 
             new Thread()
@@ -283,15 +303,15 @@ public class WritePostActivity extends AppCompatActivity
                     mListStringVal.add(mEditTextLeft.getText().toString());
                     mListStringKey.add("RightText");
                     mListStringVal.add(mEditTextRight.getText().toString());
-                    mListStringKey.add("Email");
-                    mListStringVal.add("TestEmail@gmail.com");
+                    mListStringKey.add("UserNo");
+                    mListStringVal.add("1");
 
                     mListStringKey.add("PickCount");
-                    if(mOptionOne.isChecked() == true)
+                    if(mOptionOne.isChecked())
                         mListStringVal.add("3");
-                    else if(mOptionTwo.isChecked() == true)
+                    else if(mOptionTwo.isChecked())
                         mListStringVal.add("5");
-                    else if(mOptionThree.isChecked() == true)
+                    else if(mOptionThree.isChecked())
                         mListStringVal.add("7");
 
                     excuteFilePost("http://52.78.143.80:5000/postingUpload");
@@ -304,15 +324,19 @@ public class WritePostActivity extends AppCompatActivity
         public void handleMessage(Message msg){
             int contentNo = 0;
 
-            mProgressDialog.dismiss();
-
             switch (msg.what)
             {
                 case POST_FAIL:
+                    mProgressDialog.dismiss();
                     Toast.makeText(getApplicationContext(), "등록 실패 다시 시도하세요.", Toast.LENGTH_SHORT).show();
                     break;
 
+                case POST_PROGRESS:
+                    mProgressDialog.setProgress((int) (mPostingFileSize / mTotalFileSize) * 100);
+                    break;
+
                 case POST_SUCCESS:
+                    mProgressDialog.dismiss();
                     contentNo = msg.arg1;
                     Intent intent = new Intent(WritePostActivity.this, MixingActivity.class);
                     intent.putExtra("BOARD_NO", contentNo);
@@ -372,6 +396,13 @@ public class WritePostActivity extends AppCompatActivity
                 while (bytesRead > 0)
                 {
                     // Upload file part(s)
+                    mPostingFileSize += bytesRead;
+                    if(mPostingFileSize != mTotalFileSize) {
+                        handlerMsg = mHandler.obtainMessage();
+                        handlerMsg.what = POST_PROGRESS;
+                        mHandler.sendMessage(handlerMsg);
+                    }
+
                     DataOutputStream dataWrite = new DataOutputStream(con.getOutputStream());
                     dataWrite.write(buffer, 0, bufferSize);
                     bytesAvailable = fileInputStream.available();
@@ -403,8 +434,8 @@ public class WritePostActivity extends AppCompatActivity
             try
             {
                 JSONObject jsonObject = new JSONObject(strJson);
-                int contentNo = jsonObject.getInt("ContentNo");
-                handlerMsg.arg1 = contentNo;
+                int pageNo = jsonObject.getInt("PageNo");
+                handlerMsg.arg1 = pageNo;
             }
             catch (JSONException e)
             {
@@ -413,6 +444,7 @@ public class WritePostActivity extends AppCompatActivity
 
             rd.close();
 
+            handlerMsg = mHandler.obtainMessage();
             handlerMsg.what = POST_SUCCESS;
             mHandler.sendMessage(handlerMsg);
 
@@ -420,6 +452,7 @@ public class WritePostActivity extends AppCompatActivity
         }
         catch (IOException e)
         {
+            handlerMsg = mHandler.obtainMessage();
             handlerMsg.what = POST_FAIL;
             mHandler.sendMessage(handlerMsg);
 

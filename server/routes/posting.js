@@ -15,7 +15,7 @@ var storage = multer.diskStorage({
 
         if(fs.existsSync(dirPath) == false)
         {
-            fs.mkdir(dirPath, 0666, function(err) {
+            fs.mkdir(dirPath, 0777, function(err) {
                 if(err)
                   console.log('err mkdir');
                 else
@@ -95,10 +95,7 @@ router.post('/', upload.array('file', 5), function (req, res) {
 	console.log('leftFileNmae ' + leftFileNmae);
 	console.log('rightFileNmae ' + rightFileNmae);
     
-    var insertPageData = {PageNo: 0, UserNo: userNo, Title: title
-	, TotalPickCount: Number(pickCount), RegDate: 'now()'};
-  
-	connection.query('INSERT INTO Page SET ?', insertPageData, function(err, result) {
+	connection.query('INSERT INTO Page VALUES(0, ' + userNo + ', "' + title + '", ' + pickCount + ', now())', function(err, result) {
 		if (err) {
             console.log('insert page query fail');
             return;
