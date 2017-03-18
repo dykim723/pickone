@@ -11,7 +11,7 @@ var rightFileNmae = '';
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        var dirPath = './upload/' + req.body.Email.substring(2, req.body.Email.length);
+        var dirPath = './upload/' + req.body.UserNo.substring(2, req.body.UserNo.length);
 
         if(fs.existsSync(dirPath) == false)
         {
@@ -26,8 +26,8 @@ var storage = multer.diskStorage({
         cb(null, dirPath)
     },
     filename: function (req, file, cb) {
-        var email = req.body.Email.substring(2, req.body.Email.length);
-        var dirPath = './upload/' + email + '/';
+        var userNo = req.body.UserNo.substring(2, req.body.UserNo.length);
+        var dirPath = './upload/' + userNo + '/';
         var fileName = file.originalname.substring(2, file.originalname.length);
         var fileNameBuff = file.originalname.substring(2, file.originalname.length);
         var fileNum = 1;
@@ -79,49 +79,71 @@ router.post('/', upload.array('file', 5), function (req, res) {
     var title;
     var leftText;
 	var rightText;
-    var email;
-	var pickCount;
-    var contentNo = 0;
+    var userNo;
+	var pickCount = 0;
+    var pageNo = 0;
     
     title = req.body.Title.substring(2, req.body.Title.length);
     leftText = req.body.LeftText.substring(2, req.body.LeftText.length);
 	rightText = req.body.RightText.substring(2, req.body.RightText.length);
 	pickCount = req.body.PickCount.substring(2, req.body.PickCount.length);
-    email = req.body.Email.substring(2, req.body.Email.length);
+    userNo = req.body.UserNo.substring(2, req.body.UserNo.length);
     
 	console.log('Title ' + title);
     console.log('leftText ' + leftText);
-    console.log('Email ' + email);
+    console.log('UserNo ' + userNo);
+	console.log('leftFileNmae ' + leftFileNmae);
+	console.log('rightFileNmae ' + rightFileNmae);
     
-    var insertData = {ContentNo: 0, Email: email, Title: title
-	, LeftText: leftText, LeftImage: leftFileNmae, LeftPick: 0
-	, RightText: rightText, RightImage: rightFileNmae, RightPick: 0
-	, PickCount: Number(pickCount), RegDate: null};
+    var insertPageData = {PageNo: 0, UserNo: userNo, Title: title
+	, TotalPickCount: Number(pickCount), RegDate: 'now()'};
   
-	connection.query('INSERT INTO Content SET ?', insertData, function(err, result) {
+	connection.query('INSERT INTO Page SET ?', insertPageData, function(err, result) {
 		if (err) {
-            console.log('insert query fail');
+            console.log('insert page query fail');
             return;
         }
         else {
-            console.log('insert query success');
-            connection.query('SELECT ContentNo FROM Content WHERE Email = "' + email + '" ORDER BY ContentNo DESC' , function(err, result) {
+            console.log('insert page query success');
+            connection.query('SELECT PageNo FROM Page WHERE UserNo = "' + userNo + '" ORDER BY PageNo DESC' , function(err, result) {
                 if (err) {
-                    console.log('select query fail');
+                    console.log('select page query fail');
                     return;
                 }
                 else {
-                    console.log('select query success');
-                    console.log('result.ContentNo ' + result[0].ContentNo);
-					contentNo = result[0].ContentNo;
-					res.json({'ContentNo': ''+contentNo});
+                    console.log('select page query success');
+                    console.log('result.PageNo ' + result[0].PageNo);
+					pageNo = result[0].PageNo;
+					
+					var insertContentData = {ContentNo: 0, PageNo: pageNo
+					, ContentText: leftText, Image: leftFileNmae};
+					connection.query('INSERT INTO Content SET ?', insertContentData, function(err, result) {
+						if (err) {
+							console.log('insert content query 1 fail');
+							return;
+						}
+						else {
+							console.log('insert content query 1 success');
+							insertContentData = {ContentNo: 0, PageNo: pageNo
+							, ContentText: rightText, Image: rightFileNmae};
+							connection.query('INSERT INTO Content SET ?', insertContentData, function(err, result) {
+								if (err) {
+									console.log('insert content query 2 fail');
+									return;
+								}
+								else {
+									console.log('insert content query 2 success');
+									res.json({'PageNo': ''+pageNo});
+									leftFileNmae = '';
+									rightFileNmae = '';
+								}
+							});
+						}
+					});
                 }
             });
         }
 	});
-	
-	leftFileNmae = '';
-	rightFileNmae = '';
 });
 
 module.exports = router;
